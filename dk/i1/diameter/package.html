@@ -1,0 +1,25 @@
+<body>
+Diameter Messages and AVPs.
+This package contains classes for low-level dealing with Diameter messages and AVPs.
+<p>
+The Message class contains a MessageHeader and a bunch of AVPs. The AVP classes are modelled after RFC3588. See {@link dk.i1.diameter.Message} to see examples of how to build and process messages.
+<p>
+ProtocolConstants contains symbolic constants from the RFCs.
+<p>
+Utils contains some utilities that a useful, particular for setting the M-bit on AVPs.
+
+
+<p>
+Note: The following AVP types described in RFC358 have not been implemented:
+<dl>
+    <dt>DiameterIdentity</dt>
+    <dd>Basically a AVP_UTF8String. The RFC says that it is the FQDN of a node, but violations of this have been seen in the real world.</dd>
+    <dt>DiameterURI</dt>
+    <dd>A URI with certain rules. Not seen in the real world (yet)</dd>
+    <dt>Enumerated</dt>
+    <dd>Use AVP_Unsigned32 instead</dd>
+    <dt>IPFilterRule</dt>
+    <dt>QoSFilterRule</dt>
+    <dd>Presumable specific to NASREQ</dd>
+</dl>
+</body>

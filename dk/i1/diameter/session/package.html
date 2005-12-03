@@ -1,0 +1,23 @@
+<body>
+Classes for implementing a session-capable Diameter client.
+This package contains classes for implementing a Diameter node whose primary role is a client that holds diameter sessions, eg. a NAS, GGSN.
+<p>
+This is done by using two classes.
+First, you instantiate a SessionManager. It takes care of the details about managing the node, sending and receiving messages (and lost connections), and timers in the sessions.
+Second you will create a class that implements the Session interface. It is best to make this a subclass of BaseSession og AASession. You will probably want to mix in the ACHandler to support accounting.
+
+<h2>Incomplete example</h2>
+<pre>
+Capability cap = ... //see {@link dk.i1.diameter.node.Capability}
+NodeSettings settings = ... //see {@link dk.i1.diameter.node.NodeSettings}
+Peer peers[]= {
+    new Peer("somehost.example.net"),
+    new Peer("someotherhost.example.net"),
+};
+SessionManager session_manager = new SessionManager(settings,peers);
+
+BaseSession session = new ExampleSession(...);
+
+session.openSession();
+</pre>
+</body>

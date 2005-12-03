@@ -1,0 +1,27 @@
+<body>
+<h1>Java Diameter library</h1>
+<p>
+These 3 packages allows you to implement a various kinds of Diameter nodes.
+Since you are reading this, the documentation assumes that you already have
+a good idea of what the Diameter protocol is.
+<p>
+Some places in this documentation there are references to RFC3855. If you think
+the documentation for that method/class is vague then it probably means that
+there are tricky issues or dependencies, and reading the referenced section in
+RFC3588 is a good idea.
+<p>
+Where to start in this documentation? This probably depends on what it is that
+you are implementing. If you are creating a client then a good place to start
+is {@link dk.i1.diameter.node.SimpleSyncClient} or
+{@link dk.i1.diameter.session}. If you are implementing a proxy or back-end
+server then {@link dk.i1.diameter.node} is probably a good place to start.
+<h3>Some technical details</h3>
+<h4>RFC3588 compliance</h4>
+<p>
+In general, most of RFC3588 is supported. IPv4 and IPv6 is supported. TLS encryption is not supported (yet). TCP transport is supported. SCTP transport is not supported (Java does not have any support for SCTP yet).
+<h4>Performance</h4>
+<p>
+The performance is quite good and measured in thousands of messages per second. Your application and hardware will differ, and the best you can do is to run the load test located in examples/load.
+<p>
+<small>Ok, if you really want to know: you should experience about 8000-10000 messages per second on a 1.6GHz Opteron</small>
+</body>
