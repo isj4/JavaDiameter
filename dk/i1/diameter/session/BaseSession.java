@@ -203,7 +203,7 @@ public abstract class BaseSession implements Session {
 	/**
 	 * Process an Abort-Session Request.
 	 * This implementation will stop the session unconditionally. An STR
-	 * will be sent if the server did stateMaintained() is true.
+	 * will be sent if the server said it kept state.
 	 * @return result-code (success)
 	 */
 	protected int handleASR(Message msg) {
@@ -225,7 +225,7 @@ public abstract class BaseSession implements Session {
 	 * Tell BaseSession that (re-)authorization succeeded.
 	 * A subclass must call this method when it has received and
 	 * successfully processed an authorization-answer.
-	 * @param msg Message that caused the failure. Can be null.
+	 * @param msg Message that caused the success. Can be null.
 	 */
 	protected void authSuccessful(Message msg) {
 		if(state()==State.pending)
@@ -272,7 +272,16 @@ public abstract class BaseSession implements Session {
 	
 	/**
 	 * Calculate the next timeout for this session.
-	 * The BaseSession calculates this based on session-timeout, auth-lifetime and auth-grace-period
+	 * The BaseSession calculates this based on session-timeout, auth-lifetime and auth-grace-period.
+	 * <p>Example override:
+	 <pre>
+	 public long calcNextTimeout() <i>//In your session class</i>
+	     long timeout = BaseSession.calcNextTimeout();
+	     timeout = Math.min(timeout, quota_timeout);
+	     return timeout;
+	 }
+	 </pre>
+	 * When overriding this method you should also override handleTimeout().
 	 * @return The next timeout, or Long.MAX_VALUE if none
 	 */
 	public long calcNextTimeout() {
@@ -450,7 +459,8 @@ public abstract class BaseSession implements Session {
 	 * The BaseSession implementation adds Session-Id, Origin-Host,
 	 * Origin-Realm, Destination-Realm, Auth-Application-Id and
 	 * Termination-Cause. Subclasses may want to override this to add
-	 * application-specific AVPs.
+	 * application-specific AVPs, such as user-name, calling-station-id, etc.
+	 * When overriding this method, the subclass must first call this method, then add its own AVPs.
 	 * @param request            The STR message
 	 * @param termination_cause  The Termination-Cause for closing the session.
 	 */
@@ -504,7 +514,10 @@ public abstract class BaseSession implements Session {
 	}
 	
 	/**
-	 * Add session-id, origin-host+realm and destination-realm to request
+	 * Add session-id, origin-host+realm and destination-realm to a request.
+	 * Most Diameter messages have these 4 AVPs. The origin-host and
+	 * origin-realm are the ones specified in the NodeManager's settings.
+	 * Destination-realm will be the value returned by getDestinationRealm().
 	 * @param request The request that should have the 4 AVPs added.
 	 */
 	public void addCommonStuff(Message request) {

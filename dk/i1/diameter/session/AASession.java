@@ -54,7 +54,7 @@ public class AASession extends BaseSession {
 	 * Handle a AAA message.
 	 * If the result-code is success then processAAAInfo and authSuccessful are called.
 	 * If the result-code is multi-round-auth a new AAR is initiated.
-	 * If the reuslt-code is authorization-reject then the session is closed.
+	 * If the result-code is authorization-reject then the session is closed.
 	 * If the result-code is anything else then the session is also closed.
 	 */
 	public void handleAAA(Message msg) {
@@ -127,6 +127,14 @@ public class AASession extends BaseSession {
 	 * This method must be overridden in subclasses to provide essential
 	 * information such as user-name, password, credenticals, etc.
 	 * This implementation calls {@link BaseSession#addCommonStuff} and adds the auth-application-id.
+	 * A subclass probably want to call this method first and then add the session-specific AVPs, eg:
+	 * <pre>
+	   void collectAARInfo(Message request) { <i>//method in your session class</i>
+	       AASession.collectAARInfo(request);
+	       request.add(new AVP_UTF8String(ProtocolConstants.DI_CALLING_STATION_ID,msisdn));
+	       ...
+	   }
+	 * </pre>
 	 */
 	protected void collectAARInfo(Message request) {
 		addCommonStuff(request);
@@ -137,7 +145,7 @@ public class AASession extends BaseSession {
 	 * Process information AAA message.
 	 * This method extracts authorization-lifetime, auth-grace-period,
 	 * session-timeout and auth-session-state AVPs and processes them.
-	 * Subclasses probably wnat to override this to add additional processing.
+	 * Subclasses probably want to override this to add additional processing.
 	 */
 	protected boolean processAAAInfo(Message answer) {
 		logger.log(Level.FINE,"Processing AAA info");
