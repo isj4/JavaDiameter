@@ -32,6 +32,7 @@ public class Node {
 	private Map<ConnectionKey,Connection> map_key_conn;
 	private Set<Peer> persistent_peers;
 	private Logger logger;
+	private Object obj_conn_wait;
 	
 	/**
 	 * Constructor for Node.
@@ -51,6 +52,7 @@ public class Node {
 		this.settings = settings;
 		this.node_state = new NodeState();
 		this.logger = Logger.getLogger("dk.i1.diameter.node");
+		this.obj_conn_wait = new Object();
 	}
 	
 	/**
@@ -75,6 +77,7 @@ public class Node {
 	 * Stop the node.
 	 * All connections are closed. A DPR is sent to the each connected peer
 	 * unless the transport connection's buffers are full.
+	 * Threads waiting in {@link #waitForConnection} are woken.
 	 */
 	public void stop()  {
 		logger.log(Level.INFO,"Stopping Diameter node");
@@ -90,6 +93,9 @@ public class Node {
 		node_thread = null;
 		reconnect_thread = null;
 		//other cleanup
+		synchronized(obj_conn_wait) {
+			obj_conn_wait.notifyAll();
+		}
 		map_key_conn = null;
 		persistent_peers = null;
 		if(serverChannel!=null) {
@@ -100,6 +106,45 @@ public class Node {
 		serverChannel=null;
 		selector = null;
 		logger.log(Level.INFO,"Diameter node started");
+	}
+	
+	private boolean anyReadyConnection() {
+		synchronized(map_key_conn) {
+			for(Map.Entry<ConnectionKey,Connection> e : map_key_conn.entrySet()) {
+				Connection conn = e.getValue();
+				if(conn.state==Connection.State.ready)
+					return true;
+			}
+		}
+		return false;
+	}
+	
+	/**
+	 * Wait until at least one connection has been established to a peer
+	 * and capability-exchange has finished.
+	 */
+	public void waitForConnection() throws InterruptedException {
+		synchronized(obj_conn_wait) {
+			while(!anyReadyConnection())
+				obj_conn_wait.wait();
+		}
+	}
+	/**
+	 * Wait until at least one connection has been established or until the timeout expires.
+	 * Waits until at least one connection to a peer has been established
+	 * and capability-exchange has finished, or the specified timeout has expired.
+	 * @param timeout The maximum time to wait in milliseconds.
+	 */
+	public void waitForConnection(long timeout) throws InterruptedException {
+		long wait_end = System.currentTimeMillis()+timeout;
+		synchronized(obj_conn_wait) {
+			long now = System.currentTimeMillis();
+			while(!anyReadyConnection() && now<wait_end) {
+				long t = wait_end - now;
+				obj_conn_wait.wait(t);
+				now = System.currentTimeMillis();
+			}
+		}
 	}
 	
 	/**
@@ -216,6 +261,9 @@ public class Node {
 	 * persistent peers and if the connection is lost it will automatically
 	 * be re-established. There is no way to change a peer from persistent
 	 * to non-persistent.
+	 * <p>
+	 * If/when the connection has been established and capability-exchange
+	 * has finished threads waiting in {@link #waitForConnection} are woken.
 	 * @param peer The peer that the node should try to establish a connection to.
 	 * @param persistent If true the Node wil try to keep a connection open to the peer.
 	 */
@@ -755,6 +803,7 @@ if(bytes>1000) bytes=1000;
 	
 	/**
 	 * Returns an end-to-end identifier that is unique.
+	 * The initial value is generated as described in RFC 3588 section 3 page 34.
 	 */
 	public int nextEndToEndIdentifier() {
 		return node_state.nextEndToEndIdentifier();

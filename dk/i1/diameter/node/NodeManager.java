@@ -54,6 +54,25 @@ public class NodeManager implements MessageDispatcher, ConnectionListener {
 			}
 		}
 	}
+	
+	/**
+	 * Wait until at least one connection has been established.
+	 * Waits until at least one connection to a peer has been established
+	 * and capability-exchange has finished.
+	 */
+	public void waitForConnection() throws InterruptedException {
+		node.waitForConnection();
+	}
+	/**
+	 * Wait until at least one connection has been established or until the timeout expires.
+	 * Waits until at least one connection to a peer has been established
+	 * and capability-exchange has finished, or the specified timeout has expired.
+	 * @param timeout The maximum time to wait in milliseconds.
+	 */
+	public void waitForConnection(long timeout) throws InterruptedException {
+		node.waitForConnection(timeout);
+	}
+	
 	/**Returns the embedded node*/
 	public Node node() { return node; }
 	/**Returns the node settings*/
