@@ -2,7 +2,7 @@
 
 .java.class:
 #	javac -g -cp .:examples $<
-	javac -cp . $<
+	javac -cp .:examples $<
 
 P=dk/i1/diameter
 CLASSES=$P/packunpack.class \
