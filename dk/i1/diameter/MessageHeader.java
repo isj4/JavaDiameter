@@ -116,7 +116,7 @@ public class MessageHeader {
 	}
 	
 	/**
-	 * Prepare a response from the spcified request header.
+	 * Prepare a response from the specified request header.
 	 * The proxiable flag is copied - the other flags are cleared.
 	 * The command_code, application_id, hop_by_hop_identifier,
 	 * end_to_end_identifier and 'proxyable' command flag

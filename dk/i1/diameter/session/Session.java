@@ -24,7 +24,7 @@ public interface Session {
 	
 	/**
 	 * This method is called when the SessionManager has received an answer
-	 * regarding this session
+	 * regarding this session.
 	 * @param answer The Diameter answer for this session.
 	 * @param state The state specified in the {@link SessionManager#sendRequest} call.
 	 */
@@ -39,7 +39,7 @@ public interface Session {
 	public void handleNonAnswer(int command_code, Object state);
 	
 	/**
-	 * Calculate the next timeout for this session, if any. this method is
+	 * Calculate the next timeout for this session, if any. This method is
 	 * called by the SessionManager at appropriate times in order to
 	 * calculate when handleTimeouts() should be called.
 	 * @return Next absolute timeout in milliseconds. Long.MAX_VAUE if none.
