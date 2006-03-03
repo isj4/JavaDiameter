@@ -99,7 +99,8 @@ public class AVP {
 			vendor_id = packunpack.unpack32(b,offset+i);
 			i += 4;
 			length -= 4;
-		}
+		} else
+			vendor_id = 0;
 		setPayload(b,offset+i,length);
 		i += length;
 		return true;
