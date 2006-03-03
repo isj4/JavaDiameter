@@ -154,6 +154,15 @@ public class Peer {
 		this.secure = secure;
 	}
 	
+	public String toString() {
+		return (secure?"aaas":"aaa")
+		     + "://"
+		     + host
+		     + ":"
+		     + (new Integer(port)).toString()
+		     ;
+	}
+	
 	public int hashCode() {
 		return port + host.hashCode();
 	}

@@ -38,7 +38,7 @@ public class Node {
 	 * Constructor for Node.
 	 * Constructs a Node instance with the specified parameters.
 	 * The node is not automatically started.
-	 * @param message_dispatcher A message dispatcher. If null, a default dispatcher is used you you probably dont want that one.
+	 * @param message_dispatcher A message dispatcher. If null, a default dispatcher is used you. You probably dont want that one.
 	 * @param connection_listener A connection observer. Can be null.
 	 * @param settings The node settings.
 	 */
@@ -285,7 +285,7 @@ public class Node {
 			try {
 				SocketChannel channel = SocketChannel.open();
 				channel.configureBlocking(false);
-				InetSocketAddress address = new InetSocketAddress(peer.uri().getHost(),peer.uri().getPort());
+				InetSocketAddress address = new InetSocketAddress(peer.host(),peer.port());
 				Connection conn = new Connection(address);
 				conn.host_id = peer.host();
 				conn.peer = peer;
@@ -634,7 +634,7 @@ if(bytes>1000) bytes=1000;
 	}
 	private void closeConnection(SocketChannel channel, Connection conn)  {
 		if(conn.state==Connection.State.closed) return;
-		logger.log(Level.INFO,"Closing connection to " + (conn.peer!=null ? conn.peer.uri().toString() : conn.host_id));
+		logger.log(Level.INFO,"Closing connection to " + (conn.peer!=null ? conn.peer.toString() : conn.host_id));
 		synchronized(map_key_conn) {
 			try {
 				channel.register(selector, 0);
@@ -874,10 +874,10 @@ if(bytes>1000) bytes=1000;
 			cea.add(new AVP_Unsigned32(ProtocolConstants.DI_RESULT_CODE, ProtocolConstants.DIAMETER_RESULT_SUCCESS));
 			addCEStuff(cea,conn.peer.capabilities,conn);
 			
-			logger.log(Level.INFO,"Connection to " +conn.peer.uri().toString() + " is now ready");
-			conn.state=Connection.State.ready;
+			logger.log(Level.INFO,"Connection to " +conn.peer.toString() + " is now ready");
 			Utils.setMandatory_RFC3588(cea);
 			sendMessage(cea,conn);
+			conn.state=Connection.State.ready;
 			connection_listener.handle(conn.key, conn.peer, true);
 			return true;
 		} else
@@ -900,7 +900,7 @@ if(bytes>1000) bytes=1000;
 		boolean rc = handleCEx(msg,conn);
 		if(rc) {
 			conn.state=Connection.State.ready;
-			logger.log(Level.INFO,"Connection to " +conn.peer.uri().toString() + " is now ready");
+			logger.log(Level.INFO,"Connection to " +conn.peer.toString() + " is now ready");
 			connection_listener.handle(conn.key, conn.peer, true);
 			return true;
 		} else {
