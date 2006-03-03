@@ -74,7 +74,7 @@ public class MessageHeader {
 	 * The command flags are initialized to answer+not-proxiable+not-error+not-retransmit, also known as 0.
 	 * The command_code, application_id, hop_by_hop_identifier and end_to_end_identifier are initialized to 0.
 	 */
-	MessageHeader() {
+	public MessageHeader() {
 		version = 1;
 	}
 	
@@ -82,7 +82,7 @@ public class MessageHeader {
 	 * Copy-constructor for MessageHeader.
 	 * Implements a deep copy.
 	 */
-	MessageHeader(MessageHeader mh) {
+	public MessageHeader(MessageHeader mh) {
 		version = mh.version;
 		command_flags = mh.command_flags;
 		command_code = mh.command_code;
