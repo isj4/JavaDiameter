@@ -116,7 +116,11 @@ public class Message {
 	 * @return The size (in bytes) of the message
 	 */
 	public static int decodeSize(byte b[], int offset) {
-		int ml = packunpack.unpack32(b,offset) & 0x00FFFFFF;
+		int v_ml = packunpack.unpack32(b,offset);
+		int v = (v_ml>>24)&0xff;
+		int ml = v_ml & 0x00FFFFFF;
+		if(v!=1 || ml<20 || (ml%4)!=0)
+			return 4; //will cause decode() to fail
 		return ml;
 	}
 	
@@ -139,6 +143,7 @@ public class Message {
 	public decode_status decode(byte b[]) {
 		return decode(b,0,b.length);
 	}
+//todo:: handle NUL bytes
 	/**
 	 * Decode a message from on-the-wire format.
 	 * The message is checked to be in valid format and the VPs to be of
@@ -149,10 +154,12 @@ public class Message {
 	 * @return The result for the decode operation.
 	 */
 	public decode_status decode(byte b[], int offset, int bytes) {
-		if(bytes<4)
+		if(bytes<1)
 			return decode_status.not_enough;
 		if(packunpack.unpack8(b,offset)!=1)
 			return decode_status.garbage;
+		if(bytes<4)
+			return decode_status.not_enough;
 		int sz = decodeSize(b,offset);
 		if((sz&3)!=0)
 			return decode_status.garbage;

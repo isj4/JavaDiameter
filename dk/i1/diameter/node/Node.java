@@ -594,7 +594,6 @@ if(bytes>1000) bytes=1000;
 					break;
 				case garbage:
 					hexDump(Level.WARNING,"Garbage from "+conn.host_id,raw,offset,msg_size);
-					hexDump(Level.INFO,"Complete inbuffer: ",raw,0,raw_bytes);
 					closeConnection(channel,conn);
 					return;
 			}
