@@ -23,6 +23,7 @@ public class SimpleSyncClient extends NodeManager {
 	 * requests. Connections to the configured upstream peers will be
 	 * initiated but this method may return before they have been
 	 * established.
+	 *@see NodeManager#waitForConnection
 	 */
 	public void start() throws java.io.IOException {
 		super.start();
