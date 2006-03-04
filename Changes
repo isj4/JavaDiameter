@@ -1,0 +1,10 @@
+Changes 0.9.0 -> 
+* Node.waitForConnection() and NodeManager.waitForConnection() added.
+* AVP.vendor_id was not being reset on reused AVPs when calling decode()
+* Made dk.i1.diameter.Messageheader constructors public
+* With certain malformed origin-host-id values from peers the Node thread
+  would encounter a NullPointerException because java.net.URI could not
+  parse the URI.
+* Potential race condition fix with sending messages to a peer after it
+  was marked ready but before a CEA was sent.
+* Faster detection of non-diameter traffic on sockets
