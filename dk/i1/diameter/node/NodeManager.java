@@ -53,6 +53,8 @@ public class NodeManager implements MessageDispatcher, ConnectionListener {
 				}
 			}
 		}
+		//Fastest way to clear it...
+		req_map = new HashMap<ConnectionKey,Map<Integer,Object> >();
 	}
 	
 	/**
