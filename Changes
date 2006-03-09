@@ -8,3 +8,4 @@ Changes 0.9.0 ->
 * Potential race condition fix with sending messages to a peer after it
   was marked ready but before a CEA was sent.
 * Faster detection of non-diameter traffic on sockets
+* CER, DWR, DPR always had the hop-by-hop-identifier set to 0.
