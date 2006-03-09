@@ -1,7 +1,7 @@
 package dk.i1.diameter;
 
 /**
- * 64-bit signed intege rAVP.
+ * 64-bit signed integer AVP.
  */
 public class AVP_Integer64 extends AVP {
 	public AVP_Integer64(AVP a) throws InvalidAVPLengthException {

@@ -5,7 +5,7 @@ import java.util.Date;
  * A timestamp AVP.
  * AVP_Time contains a second count since 1900. You can get the raw second count
  * using {@link AVP_Unsigned32#queryValue} but this class' methods queryDate()
- * and querySecondsSinze1970() are probably more useful in your program.
+ * and querySecondsSince1970() are probably more useful in your program.
  * <p>
  * Diameter does not have any base AVPs (RFC3588) with finer granularity than
  * seconds.
