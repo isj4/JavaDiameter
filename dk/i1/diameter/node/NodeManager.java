@@ -138,7 +138,7 @@ public class NodeManager implements MessageDispatcher, ConnectionListener {
 	
 	/**
 	 * Answer a request.
-	 * The answer is sent to the connection. If the connection has been lost in the meaintime it is ignored.
+	 * The answer is sent to the connection. If the connection has been lost in the meantime it is ignored.
 	 * @param answer The answer message.
 	 * @param connkey The connection to send the answer to.
 	 * @throws NotAnAnswerException If the answer has the R bit set in the header.
@@ -152,7 +152,7 @@ public class NodeManager implements MessageDispatcher, ConnectionListener {
 	}
 	/**
 	 * Forward a request.
-	 * Forward the request to to the specified connection. The request will
+	 * Forward the request to the specified connection. The request will
 	 * automatically get a route-record added if not already present.
 	 * This method is meant to be called from handleRequest().
 	 * @param request The request to forward
@@ -201,7 +201,7 @@ public class NodeManager implements MessageDispatcher, ConnectionListener {
 		answer(answer,connkey);
 	}
 	/**
-	 * Initiate a request.
+	 * Sends a request.
 	 * A request initiated by this node is sent to the specified connection.
 	 * @param request The request.
 	 * @param connkey The connection to use.
@@ -235,7 +235,7 @@ public class NodeManager implements MessageDispatcher, ConnectionListener {
 	 * Please note that handleAnswer() for this request may get called before this method returns. This can happen if the peer is very fast and the OS thread scheduler decides to schedule the networking thread.
 	 * @param request The request to send.
 	 * @param peers The candidate peers
-	 * @param state A state object to be remembered. This will be passed to the handleAnswer() methdo when the answer arrives.
+	 * @param state A state object to be remembered. This will be passed to the handleAnswer() method when the answer arrives.
 	 * @throws NotARequestException If the request does not have the R bit set in the header.
 	 * @throws NotRoutableException If the message could not be sent to any of the peers.
 	 */
@@ -246,7 +246,7 @@ public class NodeManager implements MessageDispatcher, ConnectionListener {
 		boolean any_capable_peers=false;
 		for(Peer p : peers) {
 			any_peers = true;
-			logger.log(Level.FINER,"Considering sendign request to "+p.host());
+			logger.log(Level.FINER,"Considering sending request to "+p.host());
 			ConnectionKey connkey = node.findConnection(p);
 			if(connkey==null) continue;
 			Peer p2 = node.connectionKey2Peer(connkey);
