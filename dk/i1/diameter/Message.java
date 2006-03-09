@@ -143,7 +143,7 @@ public class Message {
 	public decode_status decode(byte b[]) {
 		return decode(b,0,b.length);
 	}
-//todo:: handle NUL bytes
+	
 	/**
 	 * Decode a message from on-the-wire format.
 	 * The message is checked to be in valid format and the VPs to be of
