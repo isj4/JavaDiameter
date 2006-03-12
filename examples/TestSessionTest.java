@@ -4,6 +4,11 @@ import dk.i1.diameter.session.*;
 
 class TestSessionTest {
 	public static final void main(String args[]) throws Exception {
+		if(args.length!=1) {
+			System.out.println("Usage: <remote server-name>");
+			return;
+		}
+		
 		Capability capability = new Capability();
 		capability.addAuthApp(ProtocolConstants.DIAMETER_APPLICATION_NASREQ);
 		capability.addAcctApp(ProtocolConstants.DIAMETER_APPLICATION_NASREQ);
@@ -11,18 +16,18 @@ class TestSessionTest {
 		NodeSettings node_settings;
 		try {
 			node_settings  = new NodeSettings(
-				"java.isjsys.i1.dk", "i1.dk",
-				6918, //vendor-id
+				"TestSessionTest.example.net", "example.net",
+				99999, //vendor-id
 				capability,
-				0, //3868,
-				"dk.i1.diameter.server", 0x01000000);
+				9999, //3868, //port must be non-zero because we have sessions
+				"dk.i1.diameter.session.SessionManager test", 0x01000001);
 		} catch (InvalidSettingException e) {
 			System.out.println(e.toString());
 			return;
 		}
 		
 		Peer peers[] = new Peer[]{
-			new Peer("isjsys.int.i1.dk")
+			new Peer(args[0])
 		};
 		
 		
