@@ -26,7 +26,7 @@ class TestSessionTest2 {
 		NodeSettings node_settings;
 		try {
 			node_settings  = new NodeSettings(
-				"somehost.example.net", "example.net",
+				"TestSessionTest2.example.net", "example.net",
 				99999, //vendor-id
 				capability,
 				9999,
