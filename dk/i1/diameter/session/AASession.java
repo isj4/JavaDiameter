@@ -13,7 +13,6 @@ import java.util.logging.Level;
  * packets) by putting "dk.i1.diameter.session.AASession.level = ALL" into your
  * log.properties file (or equivalent)
  */
- */
 public class AASession extends BaseSession {
 	static private Logger logger = Logger.getLogger("dk.i1.diameter.session.AASession");
 	public AASession(int auth_app_id, SessionManager session_manager) {
