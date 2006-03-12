@@ -1,4 +1,4 @@
-Changes 0.9.0 -> 
+Changes 0.9.0 -> 0.9.1
 * Node.waitForConnection() and NodeManager.waitForConnection() added.
 * AVP.vendor_id was not being reset on reused AVPs when calling decode()
 * Made dk.i1.diameter.Messageheader constructors public
