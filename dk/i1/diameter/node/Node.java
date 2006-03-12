@@ -18,6 +18,10 @@ import java.io.*;
  * node but no state is maintained per message.
  * <p>Node is quite low-level. You probably want to use NodeManager instead.
  * @see NodeManager
+ * Node instances logs with the name "dk.i1.diameter.node", so you can
+ * get detailed logging (including hex-dumps of incoming and outgoing packets)
+ * by putting "dk.i1.diameter.node.level = ALL" into your log.properties
+ * file (or equivalent)
  */
 public class Node {
 	private MessageDispatcher message_dispatcher;

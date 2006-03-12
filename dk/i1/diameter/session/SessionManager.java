@@ -10,6 +10,11 @@ import java.util.logging.Level;
  * The SessionManager keeps track of outstanding requests and dispatches
  * answers to the sessions. It also keeps track of the timeouts in the
  * sessions.
+ * <p>
+ * SessionManager instances logs with the name "dk.i1.diameter.session", so
+ * you can get detailed logging (including hex-dumps of incoming and outgoing
+ * packets) by putting "dk.i1.diameter.session.level = ALL" into your
+ * log.properties file (or equivalent)
  */
 public class SessionManager extends NodeManager {
 	private static class SessionAndTimeout {

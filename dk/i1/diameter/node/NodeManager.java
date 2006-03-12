@@ -13,6 +13,11 @@ import java.util.logging.Level;
  * handleRequest() and handleAnswer()
  *
  * <p>If your needs are even simpler then have a look at {@link SimpleSyncClient} and {@link dk.i1.diameter.session.SessionManager}
+ * <p>
+ * NodeManager instances logs with the name "dk.i1.diameter.node", so you can
+ * get detailed logging (including hex-dumps of incoming and outgoing packets)
+ * by putting "dk.i1.diameter.node.level = ALL" into your log.properties
+ * file (or equivalent)
  */
 public class NodeManager implements MessageDispatcher, ConnectionListener {
 	private Node node;

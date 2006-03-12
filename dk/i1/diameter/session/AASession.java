@@ -7,6 +7,12 @@ import java.util.logging.Level;
 /**
  * A session type that uses the AA messages for authentication/authorization
  * Subclasses should override collectAARInfo() and processAAAInfo().
+ * <p>
+ * AAASession instances logs with the name "dk.i1.diameter.session.AASession", so
+ * you can get detailed logging (including hex-dumps of incoming and outgoing
+ * packets) by putting "dk.i1.diameter.session.AASession.level = ALL" into your
+ * log.properties file (or equivalent)
+ */
  */
 public class AASession extends BaseSession {
 	static private Logger logger = Logger.getLogger("dk.i1.diameter.session.AASession");
