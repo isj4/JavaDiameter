@@ -1,7 +1,7 @@
 package dk.i1.diameter;
 
 /**
- * A bunch of constants from RFC3588, RFC4005 and RFC4072.
+ * A bunch of constants from RFC3588, RFC4005, RFC4006 and RFC4072.
  */
 public final class ProtocolConstants {
 //Applications (section 2.4)
@@ -260,6 +260,139 @@ static public final int DI_ACCT_LINK_COUNT                       = 51;
 static public final int DI_ACCT_TUNNEL_CONNECTION                = 68;
 static public final int DI_ACCT_TUNNEL_PACKETS_LOST              = 86;
 
+
+//=============================================================================
+//RFC4006 Credit Control application
+
+//Applications (section 1.3)
+static public final int DIAMETER_APPLICATION_CREDIT_CONTROL = 4;
+
+//Message codes (section 3)
+static public final int DIAMETER_COMMAND_CC                    = 272;
+
+//AVPs (section 8)
+static public final int DI_CC_CORRELATION_ID                  = 411;
+static public final int DI_CC_INPUT_OCTETS                    = 412;
+static public final int DI_CC_MONEY                           = 413;
+static public final int DI_CC_OUTPUT_OCTETS                   = 414;
+static public final int DI_CC_REQUEST_NUMBER                  = 415;
+static public final int DI_CC_REQUEST_TYPE                    = 416;
+static public final int DI_CC_SERVICE_SPECIFIC_UNITS          = 417;
+static public final int DI_CC_SESSION_FAILOVER                = 418;
+static public final int DI_CC_SUB_SESSION_ID                  = 419;
+static public final int DI_CC_TIME                            = 420;
+static public final int DI_CC_TOTAL_OCTETS                    = 421;
+static public final int DI_CC_UNIT_TYPE                       = 454;
+static public final int DI_CHECK_BALANCE_RESULT               = 422;
+static public final int DI_COST_INFORMATION                   = 423;
+static public final int DI_COST_UNIT                          = 424;
+static public final int DI_CREDIT_CONTROL                     = 426;
+static public final int DI_CREDIT_CONTROL_FAILURE_HANDLING    = 427;
+static public final int DI_CURRENCY_CODE                      = 425;
+static public final int DI_DIRECT_DEBITING_FAILURE_HANDLING   = 428;
+static public final int DI_EXPONENT                           = 429;
+static public final int DI_FINAL_UNIT_ACTION                  = 449;
+static public final int DI_FINAL_UNIT_INDICATION              = 430;
+static public final int DI_GRANTED_SERVICE_UNIT               = 431;
+static public final int DI_G_S_U_POOL_IDENTIFIER              = 453;
+static public final int DI_G_S_U_POOL_REFERENCE               = 457;
+static public final int DI_MULTIPLE_SERVICES_CREDIT_CONTROL   = 456;
+static public final int DI_MULTIPLE_SERVICES_INDICATOR        = 455;
+static public final int DI_RATING_GROUP                       = 432;
+static public final int DI_REDIRECT_ADDRESS_TYPE              = 433;
+static public final int DI_REDIRECT_SERVER                    = 434;
+static public final int DI_REDIRECT_SERVER_ADDRESS            = 435;
+static public final int DI_REQUESTED_ACTION                   = 436;
+static public final int DI_REQUESTED_SERVICE_UNIT             = 437;
+static public final int DI_RESTRICTION_FILTER_RULE            = 438;
+static public final int DI_SERVICE_CONTEXT_ID                 = 461;
+static public final int DI_SERVICE_IDENTIFIER                 = 439;
+static public final int DI_SERVICE_PARAMETER_INFO             = 440;
+static public final int DI_SERVICE_PARAMETER_TYPE             = 441;
+static public final int DI_SERVICE_PARAMETER_VALUE            = 442;
+static public final int DI_SUBSCRIPTION_ID                    = 443;
+static public final int DI_SUBSCRIPTION_ID_DATA               = 444;
+static public final int DI_SUBSCRIPTION_ID_TYPE               = 450;
+static public final int DI_TARIFF_CHANGE_USAGE                = 452;
+static public final int DI_TARIFF_TIME_CHANGE                 = 451;
+static public final int DI_UNIT_VALUE                         = 445;
+static public final int DI_USED_SERVICE_UNIT                  = 446;
+static public final int DI_USER_EQUIPMENT_INFO                = 458;
+static public final int DI_USER_EQUIPMENT_INFO_TYPE           = 459;
+static public final int DI_USER_EQUIPMENT_INFO_VALUE          = 460;
+static public final int DI_VALUE_DIGITS                       = 447;
+static public final int DI_VALIDITY_TIME                      = 448;
+
+//enum for CC-Request-Type
+static public final int DI_CC_REQUEST_TYPE_INITIAL_REQUEST              = 1;
+static public final int DI_CC_REQUEST_TYPE_UPDATE_REQUEST               = 2;
+static public final int DI_CC_REQUEST_TYPE_TERMINATION_REQUEST          = 3;
+static public final int DI_CC_REQUEST_TYPE_EVENT_REQUEST                = 4;
+//enum for CC-Session-Failover
+static public final int DI_CC_SESSION_FAILOVER_FAILOVER_NOT_SUPPORTED   = 0;
+static public final int DI_CC_SESSION_FAILOVER_FAILOVER_SUPPORTED       = 1;
+//enum for Check-Balance-Result
+static public final int DI_DI_CHECK_BALANCE_RESULT_ENOUGH_CREDIT        = 0;
+static public final int DI_DI_CHECK_BALANCE_RESULT_NO_CREDIT            = 1;
+//enum for Credit-Control
+static public final int DI_DI_CREDIT_CONTROL_CREDIT_AUTHORIZATION       = 0;
+static public final int DI_DI_CREDIT_CONTROL_RE_AUTHORIZATION           = 1;
+//enum for Credit-Control-Failure-Handling
+static public final int DI_CREDIT_CONTROL_FAILURE_HANDLING_TERMINATE           = 0;
+static public final int DI_CREDIT_CONTROL_FAILURE_HANDLING_CONTINUE            = 1;
+static public final int DI_CREDIT_CONTROL_FAILURE_HANDLING_RETRY_AND_TERMINATE = 2;
+//enum for Direct-Debiting-Failure-Handling
+static public final int DI_DIRECT_DEBITING_FAILURE_HANDLING_TERMINATE_OR_BUFFER = 0;
+static public final int DI_DIRECT_DEBITING_FAILURE_HANDLING_CONTINUE            = 1;
+//enum for Tariff-Change-Usage
+static public final int DI_TARIFF_CHANGE_USAGE_UNIT_BEFORE_TARIFF_CHANGE = 0;
+static public final int DI_TARIFF_CHANGE_USAGE_UNIT_AFTER_TARIFF_CHANGE  = 1;
+static public final int DI_TARIFF_CHANGE_USAGE_UNIT_INDETERMINATE        = 2;
+//enum for CC-Unit-Type
+static public final int DI_CC_UNIT_TYPE_TIME                            = 0;
+static public final int DI_CC_UNIT_TYPE_MONEY                           = 1;
+static public final int DI_CC_UNIT_TYPE_TOTAL_OCTETS                    = 2;
+static public final int DI_CC_UNIT_TYPE_INPUT_OCTETS                    = 3;
+static public final int DI_CC_UNIT_TYPE_OUTPUT_OCTETS                   = 4;
+static public final int DI_CC_UNIT_TYPE_SERVICE_SPECIFIC_UNITS          = 5;
+//enum for Final-Unit-Action
+static public final int DI_FINAL_UNIT_ACTION_TERMINATE                  = 0;
+static public final int DI_FINAL_UNIT_ACTION_REDIRECT                   = 1;
+static public final int DI_FINAL_UNIT_ACTION_RESTRICT_ACCESS            = 2;
+//enum for Redirect-Address-Type
+static public final int DI_REDIRECT_ADDRESS_TYPE_IPV4_ADDRESS           = 0;
+static public final int DI_REDIRECT_ADDRESS_TYPE_IPV6_ADDRESS           = 1;
+static public final int DI_REDIRECT_ADDRESS_TYPE_URL                    = 2;
+static public final int DI_REDIRECT_ADDRESS_TYPE_SIP_URL                = 3;
+//enum for Multiple-Services-Indicator
+static public final int DI_MULTIPLE_SERVICES_INDICATOR_MULTIPLE_SERVICES_NOT_SUPPORTED = 0;
+static public final int DI_MULTIPLE_SERVICES_INDICATOR_MULTIPLE_SERVICES_SUPPORTED     = 1;
+//enum for Requested-Action
+static public final int DI_REQUESTED_ACTION_DIRECT_DEBITING             = 0;
+static public final int DI_REQUESTED_ACTION_REFUND_ACCOUNT              = 1;
+static public final int DI_REQUESTED_ACTION_CHECK_BALANCE               = 2;
+static public final int DI_REQUESTED_ACTION_PRICE_ENQUIRY               = 3;
+//enum for Subscription-Id-Type
+static public final int DI_SUBSCRIPTION_ID_TYPE_END_USER_E164           = 0;
+static public final int DI_SUBSCRIPTION_ID_TYPE_END_USER_IMSI           = 1;
+static public final int DI_SUBSCRIPTION_ID_TYPE_END_USER_SIP_URI        = 2;
+static public final int DI_SUBSCRIPTION_ID_TYPE_END_USER_NAI            = 3;
+static public final int DI_SUBSCRIPTION_ID_TYPE_END_USER_PRIVATE        = 4;
+//enum for User-Equipment-Info-Type
+static public final int DI_USER_EQUIPMENT_INFO_TYPE_IMEISV              = 0;
+static public final int DI_USER_EQUIPMENT_INFO_TYPE_MAC                 = 1;
+static public final int DI_USER_EQUIPMENT_INFO_TYPE_EUI64               = 2;
+static public final int DI_USER_EQUIPMENT_INFO_TYPE_MODIFIED_EUI64      = 3;
+
+//Result codes
+static public final int DIAMETER_RESULT_END_USER_SERVICE_DENIED         = 4010;
+static public final int DIAMETER_RESULT_CREDIT_CONTROL_NOT_APPLICABLE   = 4011;
+static public final int DIAMETER_RESULT_CREDIT_LIMIT_REACHED            = 4012;
+static public final int DIAMETER_RESULT_USER_UNKNOWN                    = 5030;
+static public final int DIAMETER_RESULT_RATING_FAILED                   = 5031;
+
+
+//=============================================================================
 //RFC 4072 Diameter EAP Application
 //applications (section 2.1)
 static public final int DIAMETER_APPLICATION_EAP = 5;
