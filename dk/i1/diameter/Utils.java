@@ -153,7 +153,7 @@ final public class Utils {
 		new ABNFComponent(false,  0,  1, ProtocolConstants.DI_FIRMWARE_REVISION),
 		new ABNFComponent(false,  0, -1, -1),
 	};
-	/**ABNF for CEa (section 5.3.2)*/
+	/**ABNF for CEA (section 5.3.2)*/
 	public static final ABNFComponent abnf_cea[] = {
 		new ABNFComponent(false,  1,  1, ProtocolConstants.DI_RESULT_CODE),
 		new ABNFComponent(false,  1,  1, ProtocolConstants.DI_ORIGIN_HOST),
@@ -322,7 +322,8 @@ final public class Utils {
 	 *     Message response = new Message();
 	 *     response.prepareResponse(msg);
 	 *     ...
-	 *     msg.add(caf.failed_avp);
+	 *     if(caf.failed_avp!=null)
+	 *         msg.add(caf.failed_avp);
 	 *     msg.add(new AVP_Unsigned32(ProtocolConstants.DI_RESULT_CODE,caf.result_code));
 	 *     if(caf.error_message!=null)
 	 *         msg.add(new AVP_UTF8String(ProtocolConstants.DI_ERROR_MESSAGE,caf.error_message));
