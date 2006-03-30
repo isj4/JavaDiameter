@@ -1,3 +1,6 @@
+Changes 0.9.1 ->
+* Reset TCP connection when non-diameter traffic is encountered.
+
 Changes 0.9.0 -> 0.9.1
 * Node.waitForConnection() and NodeManager.waitForConnection() added.
 * AVP.vendor_id was not being reset on reused AVPs when calling decode()

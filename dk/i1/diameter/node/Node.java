@@ -598,7 +598,7 @@ if(bytes>1000) bytes=1000;
 					break;
 				case garbage:
 					hexDump(Level.WARNING,"Garbage from "+conn.host_id,raw,offset,msg_size);
-					closeConnection(channel,conn);
+					closeConnection(channel,conn,true);
 					return;
 			}
 			if(status==Message.decode_status.not_enough) break;
@@ -635,12 +635,20 @@ if(bytes>1000) bytes=1000;
 	private void closeConnection(Connection conn)  {
 		closeConnection(conn.channel,conn);
 	}
-	private void closeConnection(SocketChannel channel, Connection conn)  {
+	private void closeConnection(SocketChannel channel, Connection conn) {
+		closeConnection(channel,conn,false);
+	}
+	private void closeConnection(SocketChannel channel, Connection conn, boolean reset) {
 		if(conn.state==Connection.State.closed) return;
 		logger.log(Level.INFO,"Closing connection to " + (conn.peer!=null ? conn.peer.toString() : conn.host_id));
 		synchronized(map_key_conn) {
 			try {
 				channel.register(selector, 0);
+				if(reset) {
+					//Set lingertime to zero to force a RST when closing the socket
+					//rfc3588, section 2.1
+					channel.socket().setSoLinger(true,0);
+				}
 				channel.close();
 			} catch(java.io.IOException ex) {}
 			map_key_conn.remove(conn.key);
