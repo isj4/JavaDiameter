@@ -62,6 +62,8 @@ CLASSES=$P/packunpack.class \
         examples/load/TestSessionTest2.class \
 	examples/load/TestSessionServer.class \
 	examples/asr/asr.class \
+	examples/cc/cc_test_client.class \
+	examples/cc/cc_test_server.class \
 	abnf/ABNFConverter.class \
 
 .PHONY: all
