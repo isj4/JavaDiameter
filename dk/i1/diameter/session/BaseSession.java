@@ -528,16 +528,6 @@ public abstract class BaseSession implements Session {
 	}
 	
 	private final String makeNewSessionId() {
-		String mandatory_part = session_manager.settings().hostId() + ";" + second_part();
-		String optional_part = getSessionIdOptionalPart();
-		if(optional_part==null)
-			return mandatory_part;
-		else
-			return mandatory_part + ";" + optional_part;
-	}
-	private static final int session_id_high=(int)(System.currentTimeMillis()/1000);
-	private static int session_id_low=0;
-	private static synchronized String second_part() {
-		return new String("" + session_id_high + ";" + session_id_low++);
+		return session_manager.node().makeNewSessionId(getSessionIdOptionalPart());
 	}
 }
