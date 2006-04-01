@@ -820,6 +820,37 @@ if(bytes>1000) bytes=1000;
 		return node_state.nextEndToEndIdentifier();
 	}
 	
+	/**
+	 * Generate a new session-id.
+	 * Implemented as makeNewSessionId(null)
+	 */
+	public String makeNewSessionId() {
+		return makeNewSessionId(null);
+	}
+	
+	/**
+	 * Generate a new session-id.
+	 * A Session-Id consists of a mandatory part and an optional part.
+	 * The mandatory part consists of the host-id and two sequencer.
+	 * The optional part can be anything. The caller provide some
+	 * information that will be helpful in debugging in production
+	 * environments, such as user-name or calling-station-id.
+	 */
+	public String makeNewSessionId(String optional_part) {
+		String mandatory_part = settings.hostId() + ";" + node_state.nextSessionId_second_part();
+		if(optional_part==null)
+			return mandatory_part;
+		else
+			return mandatory_part + ";" + optional_part;
+	}
+	
+	/**
+	 * Returns the node's state-id.
+	 */
+	public int stateId() {
+		return node_state.stateId();
+	}
+	
 	
 	private boolean doElection(String cer_host_id) {
 		int cmp = settings.hostId().compareTo(cer_host_id);
@@ -890,6 +921,9 @@ if(bytes>1000) bytes=1000;
 			sendMessage(cea,conn);
 			conn.state=Connection.State.ready;
 			connection_listener.handle(conn.key, conn.peer, true);
+			synchronized(obj_conn_wait) {
+				obj_conn_wait.notifyAll();
+			}
 			return true;
 		} else
 			return false;
@@ -913,6 +947,9 @@ if(bytes>1000) bytes=1000;
 			conn.state=Connection.State.ready;
 			logger.log(Level.INFO,"Connection to " +conn.peer.toString() + " is now ready");
 			connection_listener.handle(conn.key, conn.peer, true);
+			synchronized(obj_conn_wait) {
+				obj_conn_wait.notifyAll();
+			}
 			return true;
 		} else {
 			return false;
