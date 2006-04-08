@@ -108,8 +108,11 @@ public class Node {
 			} catch(java.io.IOException ex) {}
 		}
 		serverChannel=null;
+		try {
+			selector.close();
+		} catch(java.io.IOException ex) {}
 		selector = null;
-		logger.log(Level.INFO,"Diameter node started");
+		logger.log(Level.INFO,"Diameter node stopped");
 	}
 	
 	private boolean anyReadyConnection() {
@@ -325,6 +328,7 @@ public class Node {
 					try {
 						map_key_conn.wait(30000);
 					} catch(java.lang.InterruptedException ex) {}
+					if(please_stop) return;
 				}
 				synchronized(persistent_peers) {
 					for(Peer peer : persistent_peers)
@@ -465,7 +469,7 @@ public class Node {
 			}
 		}
 		
-		selector.close();
+		//selector is closed in stop()
 	    }
 	}
 	

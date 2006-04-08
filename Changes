@@ -5,7 +5,8 @@ Changes 0.9.1 ->
 * Added credit-controle example
 * Raw packets were not logged with log-level=FINEST
 * AVP.setM() method added
-
+* Shutting down a node could in some cases result in a NullPointerException
+  in "Diameter node reconnect thread"
 
 Changes 0.9.0 -> 0.9.1
 * Node.waitForConnection() and NodeManager.waitForConnection() added.
