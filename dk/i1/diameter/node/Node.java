@@ -246,6 +246,9 @@ public class Node {
 		conn.connection_buffers.processAppOutBuffer();
 		//System.out.println("sendMessage: B: position=" + conn.out_buffer.position() + " limit=" + conn.out_buffer.limit());
 		
+		if(logger.isLoggable(Level.FINEST))
+			hexDump(Level.FINEST,"Raw packet encoded",raw,0,raw.length);
+
 		if(was_empty) {
 			handleWritable(conn.channel,conn);
 			if(conn.hasNetOutput()) {
@@ -537,6 +540,8 @@ public class Node {
 	}
 	
 	void hexDump(Level level, String msg, byte buf[], int offset, int bytes) {
+		if(!logger.isLoggable(level))
+			return;
 if(bytes>1000) bytes=1000;
 		StringBuffer sb = new StringBuffer(msg.length()+1+bytes*3+(bytes/16+1)*(6+3+5+1));
 		sb.append(msg+"\n");
@@ -585,6 +590,8 @@ if(bytes>1000) bytes=1000;
 			//System.out.println("processInBuffer():decoded, status=" + status);
 			switch(status) {
 				case decoded: {
+					if(logger.isLoggable(Level.FINEST))
+						hexDump(Level.FINEST,"Raw packet decoded",raw,offset,msg_size);
 					offset += msg_size;
 					boolean b = handleMessage(msg,conn);
 					if(!b) {
