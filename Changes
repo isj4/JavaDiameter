@@ -1,5 +1,6 @@
-Changes 0.9.1 ->
-* Reset TCP connection when non-diameter traffic is encountered.
+Changes 0.9.1 -> 0.9.2
+* Reset TCP connection when non-diameter traffic is encountered (RFC3588
+  section 8). Previously, the connection was simply closed.
 * waitforConnection() was not working right.
 * Moved session-id generation to Node
 * Added credit-controle example
