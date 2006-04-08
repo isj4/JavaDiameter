@@ -100,6 +100,7 @@ class cc_test_client {
 		// *[ AVP ]
 		
 		Utils.setMandatory_RFC3588(ccr);
+		Utils.setMandatory_RFC4006(ccr);
 		
 		//Send it
 		Message cca = ssc.sendRequest(ccr);

@@ -105,6 +105,63 @@ final public class Utils {
 		setMandatory(msg.avps(),rfc3588_mandatory_codes);
 	}
 	
+	/**The AVP codes of the AVPs listen in RFC4006 section 8 that must be mandatory*/
+	public static final int rfc4006_mandatory_codes[]={
+		ProtocolConstants.DI_CC_INPUT_OCTETS,
+		ProtocolConstants.DI_CC_MONEY,
+		ProtocolConstants.DI_CC_OUTPUT_OCTETS,
+		ProtocolConstants.DI_CC_REQUEST_NUMBER,
+		ProtocolConstants.DI_CC_REQUEST_TYPE,
+		ProtocolConstants.DI_CC_SERVICE_SPECIFIC_UNITS,
+		ProtocolConstants.DI_CC_SESSION_FAILOVER,
+		ProtocolConstants.DI_CC_SUB_SESSION_ID,
+		ProtocolConstants.DI_CC_TIME,
+		ProtocolConstants.DI_CC_TOTAL_OCTETS,
+		ProtocolConstants.DI_CC_UNIT_TYPE,
+		ProtocolConstants.DI_CHECK_BALANCE_RESULT,
+		ProtocolConstants.DI_COST_INFORMATION,
+		ProtocolConstants.DI_COST_UNIT,
+		ProtocolConstants.DI_CREDIT_CONTROL,
+		ProtocolConstants.DI_CREDIT_CONTROL_FAILURE_HANDLING,
+		ProtocolConstants.DI_CURRENCY_CODE,
+		ProtocolConstants.DI_DIRECT_DEBITING_FAILURE_HANDLING,
+		ProtocolConstants.DI_EXPONENT,
+		ProtocolConstants.DI_FINAL_UNIT_ACTION,
+		ProtocolConstants.DI_FINAL_UNIT_INDICATION,
+		ProtocolConstants.DI_GRANTED_SERVICE_UNIT,
+		ProtocolConstants.DI_G_S_U_POOL_IDENTIFIER,
+		ProtocolConstants.DI_G_S_U_POOL_REFERENCE,
+		ProtocolConstants.DI_MULTIPLE_SERVICES_CREDIT_CONTROL,
+		ProtocolConstants.DI_MULTIPLE_SERVICES_INDICATOR,
+		ProtocolConstants.DI_RATING_GROUP,
+		ProtocolConstants.DI_REDIRECT_ADDRESS_TYPE,
+		ProtocolConstants.DI_REDIRECT_SERVER,
+		ProtocolConstants.DI_REDIRECT_SERVER_ADDRESS,
+		ProtocolConstants.DI_REQUESTED_ACTION,
+		ProtocolConstants.DI_REQUESTED_SERVICE_UNIT,
+		ProtocolConstants.DI_RESTRICTION_FILTER_RULE,
+		ProtocolConstants.DI_SERVICE_CONTEXT_ID,
+		ProtocolConstants.DI_SERVICE_IDENTIFIER,
+		ProtocolConstants.DI_SUBSCRIPTION_ID,
+		ProtocolConstants.DI_SUBSCRIPTION_ID_DATA,
+		ProtocolConstants.DI_SUBSCRIPTION_ID_TYPE,
+		ProtocolConstants.DI_TARIFF_CHANGE_USAGE,
+		ProtocolConstants.DI_TARIFF_TIME_CHANGE,
+		ProtocolConstants.DI_UNIT_VALUE,
+		ProtocolConstants.DI_USED_SERVICE_UNIT,
+		ProtocolConstants.DI_VALUE_DIGITS,
+		ProtocolConstants.DI_VALIDITY_TIME,
+	};
+	
+	/**Sets the M-bit on the AVPs that must have the M bit set according to RFC4006*/
+	public static final void setMandatory_RFC4006(Iterable<AVP> avps) {
+		setMandatory(avps,rfc4006_mandatory_codes);
+	}
+	/**Sets the M-bit on the AVPs that must have the M bit set according to RFC4006*/
+	public static final void setMandatory_RFC4006(Message msg) {
+		setMandatory(msg.avps(),rfc4006_mandatory_codes);
+	}
+	
 	/**
 	 * Copies any Proxy-Info AVPs from one message to another.
 	 * @param from The source message.
