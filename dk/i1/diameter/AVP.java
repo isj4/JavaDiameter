@@ -205,4 +205,28 @@ public class AVP {
 		if(b) flags |= avp_flag_private;
 		else flags &= ~avp_flag_private;
 	}
+	/**Sets the M-bit and returns the instance.
+	  *The M-bit (mandatory) is set and the instance is returned.
+	  *While this is very very simple, it can be useful when constructing
+	  *grouped AVPs and you need to set the M-bit on embedded AVPs, as int the following example:
+	  <pre>
+	  ccr.add(new AVP_Grouped(ProtocolConstants.DI_REQUESTED_SERVICE_UNIT,
+	                          new AVP[] {new AVP_Unsigned64(ProtocolConstants.DI_CC_SERVICE_SPECIFIC_UNITS,42).setM()}
+	                         )
+	         );
+	  </pre>
+	  where the alternative would have been more cumbersome:
+	  <pre>
+	  AVP tmp-avp = new AVP_Unsigned64(ProtocolConstants.DI_CC_SERVICE_SPECIFIC_UNITS,42);
+	  tmp_avp.setMandatory(true);
+	  ccr.add(new AVP_Grouped(ProtocolConstants.DI_REQUESTED_SERVICE_UNIT,
+	                          new AVP[] {tmp_avp}
+	                         )
+	         );
+	  </pre>
+	  */
+	public AVP setM() {
+		flags |= avp_flag_mandatory;
+		return this;
+	}
 }
