@@ -2,6 +2,8 @@ Changes 0.9.1 ->
 * Reset TCP connection when non-diameter traffic is encountered.
 * waitforConnection() was not working right.
 * Moved session-id generation to Node
+* Added credit-controle example
+* Raw packets were not logged with log-level=FINEST
 
 Changes 0.9.0 -> 0.9.1
 * Node.waitForConnection() and NodeManager.waitForConnection() added.
