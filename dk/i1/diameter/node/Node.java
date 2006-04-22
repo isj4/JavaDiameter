@@ -546,7 +546,8 @@ public class Node {
 	void hexDump(Level level, String msg, byte buf[], int offset, int bytes) {
 		if(!logger.isLoggable(level))
 			return;
-if(bytes>1000) bytes=1000;
+		//For some reason this method is grotesquely slow, so we limit the raw dump to 1K
+		if(bytes>1024) bytes=1024;
 		StringBuffer sb = new StringBuffer(msg.length()+1+bytes*3+(bytes/16+1)*(6+3+5+1));
 		sb.append(msg+"\n");
 		for(int i=0; i<bytes; i+=16) {
@@ -570,6 +571,8 @@ if(bytes>1000) bytes=1000;
 			}
 			sb.append('\n');
 		}
+		if(bytes>1024)
+			sb.append("...\n"); //Maybe the string "(truncated)" would be a more direct hint
 		logger.log(level,sb.toString());
 	}
 	
