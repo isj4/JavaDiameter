@@ -19,6 +19,7 @@ class Connection {
 		connected_out, //connected, waiting for cea
 		tls,           //CE completed, negotiating TLS
 		ready,         //ready
+		closing,       //DPR sent, waiting for DPA
 		closed
 	}
 	public State state;

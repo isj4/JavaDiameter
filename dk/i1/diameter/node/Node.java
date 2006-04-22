@@ -31,6 +31,7 @@ public class Node {
 	private Thread node_thread;
 	private Thread reconnect_thread;
 	private boolean please_stop;
+	private long shutdown_deadline;
 	private Selector selector;
 	private ServerSocketChannel serverChannel;
 	private Map<ConnectionKey,Connection> map_key_conn;
@@ -79,13 +80,52 @@ public class Node {
 	
 	/**
 	 * Stop the node.
+	 * Implemented as stop(0)
+	 */
+	public void stop() {
+		stop(0);
+	}
+	
+	/**
+	 * Stop the node.
 	 * All connections are closed. A DPR is sent to the each connected peer
 	 * unless the transport connection's buffers are full.
 	 * Threads waiting in {@link #waitForConnection} are woken.
+	 * Graceful connection close is not guaranteed in all cases.
+	 * @param grace_time Maximum time (milliseconds) to wait for connections to close gracefully.
 	 */
-	public void stop()  {
+	public void stop(long grace_time)  {
 		logger.log(Level.INFO,"Stopping Diameter node");
-		please_stop = true;
+		synchronized(map_key_conn) {
+			shutdown_deadline = System.currentTimeMillis() + grace_time;
+			please_stop = true;
+			//Close all the non-ready connections, initiate close on ready ones.
+			for(Iterator<Map.Entry<ConnectionKey,Connection>> it = map_key_conn.entrySet().iterator();
+			    it.hasNext()
+			   ;)
+			{
+				Map.Entry<ConnectionKey,Connection> e = it.next();
+				Connection conn = e.getValue();
+				switch(conn.state) {
+					case connecting:
+					case connected_in:
+					case connected_out:
+						logger.log(Level.FINE,"Closing connection to "+conn.host_id+" because we are shutting down");
+						it.remove();
+						try { conn.channel.close(); } catch(java.io.IOException ex) {}
+						break;
+					case tls:
+						break; //don't know what to do here yet.
+					case ready:
+						initiateConnectionClose(conn,ProtocolConstants.DI_DISCONNECT_CAUSE_REBOOTING);
+						break;
+					case closing:
+						break; //nothing to do
+					case closed:
+						break; //nothing to do
+				}
+			}
+		}
 		selector.wakeup();
 		synchronized(map_key_conn) {
 			map_key_conn.notify();
@@ -373,7 +413,15 @@ public class Node {
 			serverChannel.register(selector, SelectionKey.OP_ACCEPT);
 		}
 		
-		while(!please_stop) {
+		for(;;) {
+			if(please_stop) {
+				if(System.currentTimeMillis()>=shutdown_deadline)
+					break;
+				synchronized(map_key_conn) {
+					if(map_key_conn.isEmpty())
+						break;
+				}
+			}
 			long timeout = calcNextTimeout();
 			int n;
 			//System.out.println("selecting...");
@@ -399,15 +447,20 @@ public class Node {
 					SocketChannel channel = server.accept();
 					InetSocketAddress address = (InetSocketAddress)channel.socket().getRemoteSocketAddress();
 					logger.log(Level.INFO,"Got an inbound connection from " + address.toString());
-					Connection conn = new Connection(address);
-					conn.host_id = address.getAddress().getHostAddress();
-					conn.state = Connection.State.connected_in;
-					conn.channel = channel;
-					channel.configureBlocking(false);
-					channel.register(selector, SelectionKey.OP_READ, conn);
-					
-					synchronized(map_key_conn) {
-						map_key_conn.put(conn.key,conn);
+					if(!please_stop) {
+						Connection conn = new Connection(address);
+						conn.host_id = address.getAddress().getHostAddress();
+						conn.state = Connection.State.connected_in;
+						conn.channel = channel;
+						channel.configureBlocking(false);
+						channel.register(selector, SelectionKey.OP_READ, conn);
+
+						synchronized(map_key_conn) {
+							map_key_conn.put(conn.key,conn);
+						}
+					} else {
+						//We don't want to add the connection if were are shutting down.
+						channel.close();
 					}
 				} else if(key.isConnectable()) {
 					logger.log(Level.FINE,"An outbound connection is ready (key is connectable)");
@@ -463,8 +516,6 @@ public class Node {
 		synchronized(map_key_conn) {
 			for(Map.Entry<ConnectionKey,Connection> e : map_key_conn.entrySet()) {
 				Connection conn = e.getValue();
-				if(conn.state==Connection.State.ready)
-					sendDPR(conn,ProtocolConstants.DI_DISCONNECT_CAUSE_REBOOTING);
 				closeConnection(conn);
 			}
 		}
@@ -484,6 +535,8 @@ public class Node {
 					timeout = conn_timeout;
 			}
 		}
+		if(please_stop && shutdown_deadline<timeout)
+			timeout=shutdown_deadline;
 		return timeout;
 	}
 	
@@ -502,8 +555,7 @@ public class Node {
 					case disconnect_idle:
 						logger.log(Level.WARNING,"Disconnecting due to idle");
 						//busy is the closest thing to "no traffic for a long time. No point in keeping the connection"
-						sendDPR(conn,ProtocolConstants.DI_DISCONNECT_CAUSE_BUSY);
-						closeConnection(conn);
+						initiateConnectionClose(conn,ProtocolConstants.DI_DISCONNECT_CAUSE_BUSY);
 						break;
 					case disconnect_no_dw:
 						logger.log(Level.WARNING,"Disconnecting due to no DWA");
@@ -671,6 +723,14 @@ public class Node {
 		connection_listener.handle(conn.key, conn.peer, false);
 	}
 	
+	//Send a DPR with the specified disconnect-cause, want change the state to 'closing'
+	private void initiateConnectionClose(Connection conn, int why) {
+		if(conn.state!=Connection.State.ready)
+			return; //should probably never happen
+		sendDPR(conn,why);
+		conn.state = Connection.State.closing;
+	}
+	
 	private boolean handleMessage(Message msg, Connection conn) {
 		if(logger.isLoggable(Level.FINE))
 			logger.log(Level.FINE,"command_code=" + msg.hdr.command_code + " application_id=" + msg.hdr.application_id + " connection_state=" + conn.state);
@@ -711,10 +771,8 @@ public class Node {
 				case ProtocolConstants.DIAMETER_COMMAND_DISCONNECT_PEER:
 					if(msg.hdr.isRequest())
 						return handleDPR(msg,conn);
-					else {
-						logger.log(Level.WARNING,"Got a DPA. This is not expected");
-						return false; //?
-					}
+					else
+						return handleDPA(msg,conn);
 				default:
 					conn.timers.markRealActivity();
 					if(msg.hdr.isRequest()) {
@@ -726,6 +784,7 @@ public class Node {
 							rejectDisallowedRequest(msg,conn);
 							return true;
 						}
+						//We could also reject requests if we ar shutting down, but there are no result-code for this.
 					}
 					if(!message_dispatcher.handle(msg,conn.key,conn.peer)) {
 						if(msg.hdr.isRequest())
@@ -1139,6 +1198,13 @@ public class Node {
 		
 		sendMessage(dpa,conn);
 		return false;
+	}
+	private boolean handleDPA(Message msg, Connection conn) {
+		if(conn.state==Connection.State.closing)
+			logger.log(Level.INFO,"Got a DPA from "+conn.host_id);
+		else
+			logger.log(Level.WARNING,"Got a DPA. This is not expected");
+		return false; //in any case close the connection
 	}
 	private boolean handleUnknownRequest(Message msg, Connection conn) {
 		logger.log(Level.INFO,"Unknown request received from "+conn.host_id);

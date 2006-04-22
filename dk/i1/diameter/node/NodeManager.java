@@ -45,11 +45,19 @@ public class NodeManager implements MessageDispatcher, ConnectionListener {
 		node.start();
 	}
 	/**
-	 * Stop the node manager.
-	 * Stops the embedded Node and call handleAnswer() with null messages for outstanding requests.
+	 * Stop the node manager immediately.
+	 * Implemented as stop(0)
 	 */
 	public void stop() {
-		node.stop();
+		stop(0);
+	}
+	/**
+	 * Stop the node manager.
+	 * Stops the embedded Node and call handleAnswer() with null messages for outstanding requests.
+	 * @param grace_time Maximum time (milliseconds) to wait for connections to close gracefully.
+	 */
+	public void stop(long grace_time) {
+		node.stop(grace_time);
 		synchronized(req_map) {
 			for(Map.Entry<ConnectionKey,Map<Integer,Object>> e_c : req_map.entrySet()) {
 				ConnectionKey connkey = e_c.getKey();

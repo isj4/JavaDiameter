@@ -68,10 +68,11 @@ public class SessionManager extends NodeManager {
 	}
 	/**
 	 * Stop the SessionManager.
+	 * @param grace_time Maximum time (milliseconds) to wait for connections to close gracefully.
 	 */
-	public void stop() {
+	public void stop(long grace_time) {
 		logger.log(Level.FINE,"Stopping session manager");
-		super.stop();
+		super.stop(grace_time);
 		synchronized(map_session) {
 			stop = true;
 			map_session.notify();
@@ -79,6 +80,7 @@ public class SessionManager extends NodeManager {
 		try {
 			timer_thread.join();
 		} catch(java.lang.InterruptedException e) {}
+		logger.log(Level.FINE,"Session manager stopped");
 	}
 	
 	

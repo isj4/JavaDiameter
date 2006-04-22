@@ -46,7 +46,7 @@ class cc_test_server extends NodeManager {
 		System.out.println("Hit enter to terminate server");
 		System.in.read();
 		
-		tss.stop();
+		tss.stop(50); //Stop but allow 50ms graceful shutdown
 	}
 	
 	protected void handleRequest(dk.i1.diameter.Message request, ConnectionKey connkey, Peer peer) {
