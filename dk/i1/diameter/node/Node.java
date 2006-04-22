@@ -464,7 +464,7 @@ public class Node {
 			for(Map.Entry<ConnectionKey,Connection> e : map_key_conn.entrySet()) {
 				Connection conn = e.getValue();
 				if(conn.state==Connection.State.ready)
-					sendDPR(conn,ProtocolConstants.DI_DISCONNECT_CAUSE_BUSY);
+					sendDPR(conn,ProtocolConstants.DI_DISCONNECT_CAUSE_REBOOTING);
 				closeConnection(conn);
 			}
 		}
