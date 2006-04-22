@@ -1078,35 +1078,42 @@ public class Node {
 				logger.log(Level.FINEST,"Resulting capabilities:\n"+s);
 			}
 			if(result_capabilities.isEmpty()) {
-				Message error_response = new Message();
-				error_response.prepareResponse(msg);
-				error_response.add(new AVP_Unsigned32(ProtocolConstants.DI_RESULT_CODE, ProtocolConstants.DIAMETER_RESULT_NO_COMMON_APPLICATION));
-				addOurHostAndRealm(error_response);
-				Utils.setMandatory_RFC3588(error_response);
-				sendMessage(error_response,conn);
+				logger.log(Level.WARNING,"No application in common");
+				if(msg.hdr.isRequest()) {
+					Message error_response = new Message();
+					error_response.prepareResponse(msg);
+					error_response.add(new AVP_Unsigned32(ProtocolConstants.DI_RESULT_CODE, ProtocolConstants.DIAMETER_RESULT_NO_COMMON_APPLICATION));
+					addOurHostAndRealm(error_response);
+					Utils.setMandatory_RFC3588(error_response);
+					sendMessage(error_response,conn);
+				}
 				return false;
 			}
 			
 			conn.peer.capabilities = result_capabilities;
 		} catch(InvalidAVPLengthException ex) {
 			logger.log(Level.WARNING,"Invalid AVP in CER/CEA",ex);
-			Message error_response = new Message();
-			error_response.prepareResponse(msg);
-			error_response.add(new AVP_Unsigned32(ProtocolConstants.DI_RESULT_CODE, ProtocolConstants.DIAMETER_RESULT_INVALID_AVP_LENGTH));
-			addOurHostAndRealm(error_response);
-			error_response.add(new AVP_FailedAVP(ex.avp));
-			Utils.setMandatory_RFC3588(error_response);
-			sendMessage(error_response,conn);
+			if(msg.hdr.isRequest()) {
+				Message error_response = new Message();
+				error_response.prepareResponse(msg);
+				error_response.add(new AVP_Unsigned32(ProtocolConstants.DI_RESULT_CODE, ProtocolConstants.DIAMETER_RESULT_INVALID_AVP_LENGTH));
+				addOurHostAndRealm(error_response);
+				error_response.add(new AVP_FailedAVP(ex.avp));
+				Utils.setMandatory_RFC3588(error_response);
+				sendMessage(error_response,conn);
+			}
 			return false;
 		} catch(InvalidAVPValueException ex) {
 			logger.log(Level.WARNING,"Invalid AVP in CER/CEA",ex);
-			Message error_response = new Message();
-			error_response.prepareResponse(msg);
-			error_response.add(new AVP_Unsigned32(ProtocolConstants.DI_RESULT_CODE, ProtocolConstants.DIAMETER_RESULT_INVALID_AVP_VALUE));
-			addOurHostAndRealm(error_response);
-			error_response.add(new AVP_FailedAVP(ex.avp));
-			Utils.setMandatory_RFC3588(error_response);
-			sendMessage(error_response,conn);
+			if(msg.hdr.isRequest()) {
+				Message error_response = new Message();
+				error_response.prepareResponse(msg);
+				error_response.add(new AVP_Unsigned32(ProtocolConstants.DI_RESULT_CODE, ProtocolConstants.DIAMETER_RESULT_INVALID_AVP_VALUE));
+				addOurHostAndRealm(error_response);
+				error_response.add(new AVP_FailedAVP(ex.avp));
+				Utils.setMandatory_RFC3588(error_response);
+				sendMessage(error_response,conn);
+			}
 			return false;
 		}
 		return true;

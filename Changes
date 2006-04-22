@@ -3,7 +3,8 @@ Changes 0.9.2 ->
   (correct) 'rebooting' cause.
 * It is now possible to have a (small) grace period for making a clean
   shutdown of connections waiting for reception of DPA. This has mostly
-  academic interest.
+  academic interest. The default is to send DPR and close immediately.
+* An CEA was erroneously sent as response to an unhandled CEA
 
 Changes 0.9.1 -> 0.9.2
 * Reset TCP connection when non-diameter traffic is encountered (RFC3588
