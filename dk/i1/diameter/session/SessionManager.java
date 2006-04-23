@@ -69,6 +69,7 @@ public class SessionManager extends NodeManager {
 	/**
 	 * Stop the SessionManager.
 	 * @param grace_time Maximum time (milliseconds) to wait for connections to close gracefully.
+	 * @since grace_time parameter introduced in 0.9.3
 	 */
 	public void stop(long grace_time) {
 		logger.log(Level.FINE,"Stopping session manager");

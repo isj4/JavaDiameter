@@ -17,11 +17,11 @@ import java.io.*;
  * ConnectionListener is notified. Message can be sent and received through the
  * node but no state is maintained per message.
  * <p>Node is quite low-level. You probably want to use NodeManager instead.
- * @see NodeManager
- * Node instances logs with the name "dk.i1.diameter.node", so you can
+ * <p>Node instances logs with the name "dk.i1.diameter.node", so you can
  * get detailed logging (including hex-dumps of incoming and outgoing packets)
  * by putting "dk.i1.diameter.node.level = ALL" into your log.properties
  * file (or equivalent)
+ * @see NodeManager
  */
 public class Node {
 	private MessageDispatcher message_dispatcher;
@@ -93,6 +93,7 @@ public class Node {
 	 * Threads waiting in {@link #waitForConnection} are woken.
 	 * Graceful connection close is not guaranteed in all cases.
 	 * @param grace_time Maximum time (milliseconds) to wait for connections to close gracefully.
+	 * @since grace_time parameter introduced in 0.9.3
 	 */
 	public void stop(long grace_time)  {
 		logger.log(Level.INFO,"Stopping Diameter node");
@@ -169,6 +170,7 @@ public class Node {
 	/**
 	 * Wait until at least one connection has been established to a peer
 	 * and capability-exchange has finished.
+	 * @since 0.9.1
 	 */
 	public void waitForConnection() throws InterruptedException {
 		synchronized(obj_conn_wait) {
@@ -181,6 +183,7 @@ public class Node {
 	 * Waits until at least one connection to a peer has been established
 	 * and capability-exchange has finished, or the specified timeout has expired.
 	 * @param timeout The maximum time to wait in milliseconds.
+	 * @since 0.9.1
 	 */
 	public void waitForConnection(long timeout) throws InterruptedException {
 		long wait_end = System.currentTimeMillis()+timeout;
@@ -896,6 +899,7 @@ public class Node {
 	/**
 	 * Generate a new session-id.
 	 * Implemented as makeNewSessionId(null)
+	 * @since 0.9.2
 	 */
 	public String makeNewSessionId() {
 		return makeNewSessionId(null);
@@ -908,6 +912,7 @@ public class Node {
 	 * The optional part can be anything. The caller provide some
 	 * information that will be helpful in debugging in production
 	 * environments, such as user-name or calling-station-id.
+	 * @since 0.9.2
 	 */
 	public String makeNewSessionId(String optional_part) {
 		String mandatory_part = settings.hostId() + ";" + node_state.nextSessionId_second_part();
@@ -919,6 +924,7 @@ public class Node {
 	
 	/**
 	 * Returns the node's state-id.
+	 * @since 0.9.2
 	 */
 	public int stateId() {
 		return node_state.stateId();

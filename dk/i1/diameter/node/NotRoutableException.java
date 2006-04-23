@@ -3,7 +3,7 @@ package dk.i1.diameter.node;
 /**
  * A message was not routable.
  * This exception is thrown when NodeManager could not send a request either
- * because no connection(s) was avaialbel or because no available peers
+ * because no connection(s) was available or because no available peers
  * supported the message.
  */
 public class NotRoutableException extends Exception {

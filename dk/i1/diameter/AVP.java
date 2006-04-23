@@ -208,7 +208,7 @@ public class AVP {
 	/**Sets the M-bit and returns the instance.
 	  *The M-bit (mandatory) is set and the instance is returned.
 	  *While this is very very simple, it can be useful when constructing
-	  *grouped AVPs and you need to set the M-bit on embedded AVPs, as int the following example:
+	  *grouped AVPs and you need to set the M-bit on embedded AVPs, as in the following example:
 	  <pre>
 	  ccr.add(new AVP_Grouped(ProtocolConstants.DI_REQUESTED_SERVICE_UNIT,
 	                          new AVP[] {new AVP_Unsigned64(ProtocolConstants.DI_CC_SERVICE_SPECIFIC_UNITS,42).setM()}
@@ -224,6 +224,7 @@ public class AVP {
 	                         )
 	         );
 	  </pre>
+	  *@since 0.9.2
 	  */
 	public AVP setM() {
 		flags |= avp_flag_mandatory;

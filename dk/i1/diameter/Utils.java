@@ -153,11 +153,15 @@ final public class Utils {
 		ProtocolConstants.DI_VALIDITY_TIME,
 	};
 	
-	/**Sets the M-bit on the AVPs that must have the M bit set according to RFC4006*/
+	/**Sets the M-bit on the AVPs that must have the M bit set according to RFC4006
+	 * @since 0.9.2
+	 */
 	public static final void setMandatory_RFC4006(Iterable<AVP> avps) {
 		setMandatory(avps,rfc4006_mandatory_codes);
 	}
-	/**Sets the M-bit on the AVPs that must have the M bit set according to RFC4006*/
+	/**Sets the M-bit on the AVPs that must have the M bit set according to RFC4006
+	 * @since 0.9.2
+	 */
 	public static final void setMandatory_RFC4006(Message msg) {
 		setMandatory(msg.avps(),rfc4006_mandatory_codes);
 	}

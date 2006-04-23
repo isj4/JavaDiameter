@@ -55,6 +55,7 @@ public class NodeManager implements MessageDispatcher, ConnectionListener {
 	 * Stop the node manager.
 	 * Stops the embedded Node and call handleAnswer() with null messages for outstanding requests.
 	 * @param grace_time Maximum time (milliseconds) to wait for connections to close gracefully.
+	 * @since grace_time parameter introduced in 0.9.3
 	 */
 	public void stop(long grace_time) {
 		node.stop(grace_time);
@@ -74,6 +75,7 @@ public class NodeManager implements MessageDispatcher, ConnectionListener {
 	 * Wait until at least one connection has been established.
 	 * Waits until at least one connection to a peer has been established
 	 * and capability-exchange has finished.
+	 * @since 0.9.1
 	 */
 	public void waitForConnection() throws InterruptedException {
 		node.waitForConnection();
@@ -83,6 +85,7 @@ public class NodeManager implements MessageDispatcher, ConnectionListener {
 	 * Waits until at least one connection to a peer has been established
 	 * and capability-exchange has finished, or the specified timeout has expired.
 	 * @param timeout The maximum time to wait in milliseconds.
+	 * @since 0.9.1
 	 */
 	public void waitForConnection(long timeout) throws InterruptedException {
 		node.waitForConnection(timeout);
