@@ -11,6 +11,10 @@ import dk.i1.diameter.Message;
  * messages from other peers cannot be received until the method returns. If
  * the handle() method needs to do any lengthy processing then it should
  * implement a message queue, put the message into the queue, and return.
+ * <p>
+ * Also note that CER/CEA, DWR/DWA and DPR/DPA messages are given to the
+ * dispatcher because the node handles them itself. STR/STA, ASR/ASA and
+ * other base message are given to the dispatcher.
  */
 public interface MessageDispatcher {
 	/**
