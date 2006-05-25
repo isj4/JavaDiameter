@@ -339,7 +339,7 @@ public class Node {
 				SocketChannel channel = SocketChannel.open();
 				channel.configureBlocking(false);
 				InetSocketAddress address = new InetSocketAddress(peer.host(),peer.port());
-				Connection conn = new Connection(address);
+				Connection conn = new Connection(address,settings.watchdogInterval(),settings.idleTimeout());
 				conn.host_id = peer.host();
 				conn.peer = peer;
 				try {
@@ -451,7 +451,7 @@ public class Node {
 					InetSocketAddress address = (InetSocketAddress)channel.socket().getRemoteSocketAddress();
 					logger.log(Level.INFO,"Got an inbound connection from " + address.toString());
 					if(!please_stop) {
-						Connection conn = new Connection(address);
+						Connection conn = new Connection(address,settings.watchdogInterval(),settings.idleTimeout());
 						conn.host_id = address.getAddress().getHostAddress();
 						conn.state = Connection.State.connected_in;
 						conn.channel = channel;

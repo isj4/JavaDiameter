@@ -15,7 +15,7 @@ import java.util.Random;
  *  try {
  *      node_settings  = new NodeSettings(
  *          "somehost.example.net", "example.net",
- *          0, //vendor-id.0 is not a valid value.
+ *          0, //vendor-id. 0 is not a valid value.
  *          capability,
  *          3868,
  *          "ExampleNet gateway", 0x01000000);
@@ -57,6 +57,8 @@ public class NodeSettings {
 	private int port;
 	private String product_name;
 	private int firmware_revision;
+	private long watchdog_interval;
+	private long idle_close_timeout;
 	
 	/**
 	 * Constructor for NodeSettings.
@@ -105,6 +107,8 @@ public class NodeSettings {
 			throw new InvalidSettingException("product-name cannot be null");
 		this.product_name = product_name;
 		this.firmware_revision = firmware_revision;
+		this.watchdog_interval = 30*1000;
+		this.idle_close_timeout = 7*24*3600*1000;
 	}
 	
 	/**Returns the configured host ID*/
@@ -140,5 +144,45 @@ public class NodeSettings {
 	/**Returns the firmware revision*/
 	public int firmwareRevision() {
 		return firmware_revision;
+	}
+	
+	/**Returns the desired DWR interval (in milliseconds). The default
+	 * interval is 30 seconds as per RFC3539 section 3.4.1
+	 * @since 0.9.3
+	 */
+	public long watchdogInterval() {
+		return watchdog_interval;
+	}
+	
+	/**Sets the desired DWR/DWA interval. The default interval is 30 seconds
+	 * as per RFC3539 section 3.4.1
+	 * @param interval DWR interval in milliseconds
+	 * @throws InvalidSettingException If the interval is less than 6000 milliseconds
+	 * @since 0.9.3
+	 */
+	public void setWatchdogInterval(long interval) throws InvalidSettingException {
+		if(interval<6*1000)
+			throw new InvalidSettingException("watchdog interval must be at least 6 seconds. RFC3539 section 3.4.1 item 1");
+		this.watchdog_interval = interval;
+	}
+	
+	/**Returns the idle timeout (in milliseconds)
+	 * @since 0.9.3
+	 */
+	public long idleTimeout() {
+		return idle_close_timeout;
+	}
+	
+	/**Sets the idle close timeout. The default idle timeout is 7 days,
+	 * after which the connection will closed with reason='busy' unless
+	 * there has been non-watchdog traffic on the connection.
+	 * @param timeout Timeout in milliseconds. If 0 then idle timeout is disabled and connections will be kept open.
+	 * @throws InvalidSettingException If timeout is negative.
+	 * @since 0.9.3
+	 */
+	public void setIdleTimeout(long timeout) throws InvalidSettingException {
+		if(timeout<0)
+			throw new InvalidSettingException("idle timeout cannot be negative");
+		this.idle_close_timeout = timeout;
 	}
 }

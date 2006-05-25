@@ -5,6 +5,8 @@ Changes 0.9.2 ->
   shutdown of connections waiting for reception of DPA. This has mostly
   academic interest. The default is to send DPR and close immediately.
 * An CEA was erroneously sent as response to an unhandled CEA
+* Idle timeout changed from 1 hour to 7 days.
+* NodeSettings.???watchdoginterval() and NodeSettings.???idleTimeout() added.
 
 Changes 0.9.1 -> 0.9.2
 * Reset TCP connection when non-diameter traffic is encountered (RFC3588

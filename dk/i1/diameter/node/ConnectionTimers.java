@@ -13,8 +13,8 @@ class ConnectionTimers {
 		last_real_activity = System.currentTimeMillis();
 		last_in_dw = System.currentTimeMillis();
 		dw_outstanding = false;
-		cfg_watchdog_timer = watchdog_timer*1000;
-		cfg_idle_close_timeout = idle_close_timeout*1000;
+		cfg_watchdog_timer = watchdog_timer;
+		cfg_idle_close_timeout = idle_close_timeout;
 	}
 	
 	public void markDWR() { //got a DWR

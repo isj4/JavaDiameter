@@ -24,8 +24,8 @@ class Connection {
 	}
 	public State state;
 	
-	public Connection(InetSocketAddress address) {
-		timers = new ConnectionTimers(30,3600); //todo
+	public Connection(InetSocketAddress address, long watchdog_interval, long idle_timeout) {
+		timers = new ConnectionTimers(watchdog_interval,idle_timeout);
 		key = new ConnectionKey();
 		hop_by_hop_identifier_seq = new java.util.Random().nextInt();
 		state = State.connected_in;
