@@ -104,11 +104,63 @@ class cc_test_client {
 		
 		//Send it
 		Message cca = ssc.sendRequest(ccr);
+		
+		//Now look at the result
 		if(cca==null) {
 			System.out.println("No response");
 			return;
 		}
+		AVP result_code = cca.find(ProtocolConstants.DI_RESULT_CODE);
+		if(result_code==null) {
+			System.out.println("No result code");
+			return;
+		}
+		try {
+			AVP_Unsigned32 result_code_u32 = new AVP_Unsigned32(result_code);
+			int rc = result_code_u32.queryValue();
+			switch(rc) {
+				case ProtocolConstants.DIAMETER_RESULT_SUCCESS:
+					System.out.println("Success");
+					break;
+				case ProtocolConstants.DIAMETER_RESULT_END_USER_SERVICE_DENIED:
+					System.out.println("End user service denied");
+					break;
+				case ProtocolConstants.DIAMETER_RESULT_CREDIT_CONTROL_NOT_APPLICABLE:
+					System.out.println("Credit-control not applicable");
+					break;
+				case ProtocolConstants.DIAMETER_RESULT_CREDIT_LIMIT_REACHED:
+					System.out.println("Credit-limit reached");
+					break;
+				case ProtocolConstants.DIAMETER_RESULT_USER_UNKNOWN:
+					System.out.println("User unknown");
+					break;
+				case ProtocolConstants.DIAMETER_RESULT_RATING_FAILED:
+					System.out.println("Rating failed");
+					break;
+				default:
+					//Some other error
+					//There are too many to decode them all.
+					//We just print the classification
+					if(rc>=1000 && rc<1999)
+						System.out.println("Informational: " + rc);
+					else if(rc>=2000 && rc<2999)
+						System.out.println("Success: " + rc);
+					else if(rc>=3000 && rc<3999)
+						System.out.println("Protocl error: " + rc);
+					else if(rc>=4000 && rc<4999)
+						System.out.println("Transient failure: " + rc);
+					else if(rc>=5000 && rc<5999)
+						System.out.println("Permanent failure: " + rc);
+					else
+						System.out.println("(unknown error class): " + rc);
+				
+			}
+		} catch(InvalidAVPLengthException ex) {
+			System.out.println("result-code was illformed");
+			return;
+		}
 		
+		//Stop the stack
 		ssc.stop();
 	}
 }
