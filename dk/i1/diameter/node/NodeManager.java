@@ -200,6 +200,7 @@ public class NodeManager implements MessageDispatcher, ConnectionListener {
 	 * Forward an answer.
 	 * Forward the answer to to the specified connection. The answer will automatically get a route-record added.
 	 * This method is meant to be called from handleAnswer().
+	 * Remember to restore the hop-by-hop-identifier on the message before calling this function.
 	 * @param answer The answer to forward
 	 * @param connkey The connection to use
 	 * @throws NotAnAnswerException If the answer has the R bit set in the header.
