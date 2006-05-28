@@ -282,7 +282,7 @@ public class Node {
 		}
 	}
 	private void sendMessage(Message msg, Connection conn) {
-		logger.log(Level.FINER,"command=" + msg.hdr.command_code +", to=" + conn.peer.host());
+		logger.log(Level.FINER,"command=" + msg.hdr.command_code +", to=" + (conn.peer!=null ? conn.peer.toString() : conn.host_id));
 		byte[] raw = msg.encode();
 		
 		boolean was_empty = !conn.hasNetOutput();
