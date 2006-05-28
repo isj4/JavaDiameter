@@ -317,6 +317,8 @@ public class Node {
 	 * <p>
 	 * If/when the connection has been established and capability-exchange
 	 * has finished threads waiting in {@link #waitForConnection} are woken.
+	 * <p>
+	 * You cannot initiate connections before the node has been started.
 	 * @param peer The peer that the node should try to establish a connection to.
 	 * @param persistent If true the Node wil try to keep a connection open to the peer.
 	 */
