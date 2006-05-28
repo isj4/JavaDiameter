@@ -165,14 +165,17 @@ public class Capability {
 			if(us.isSupportedVendor(vendor_id))
 				c.addSupportedVendor(vendor_id);
 		}
+		
 		for(Integer app : peer.auth_app) {
 			if(app==ProtocolConstants.DIAMETER_APPLICATION_RELAY ||
-			   us.auth_app.contains(app))
+			   us.auth_app.contains(app) ||
+			   us.auth_app.contains(ProtocolConstants.DIAMETER_APPLICATION_RELAY))
 				c.addAuthApp(app);
 		}
 		for(Integer app : peer.acct_app) {
 			if(app==ProtocolConstants.DIAMETER_APPLICATION_RELAY ||
-			   us.acct_app.contains(app))
+			   us.acct_app.contains(app) ||
+			   us.acct_app.contains(ProtocolConstants.DIAMETER_APPLICATION_RELAY))
 				c.addAcctApp(app);
 		}
 		for(VendorApplication va : peer.auth_vendor) {

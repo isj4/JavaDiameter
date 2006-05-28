@@ -8,6 +8,7 @@ Changes 0.9.2 ->
 * Idle timeout changed from 1 hour to 7 days.
 * NodeSettings.???watchdoginterval() and NodeSettings.???idleTimeout() added.
 * NPE when new inbound connection lost election
+* Support for connecting to relays
 
 Changes 0.9.1 -> 0.9.2
 * Reset TCP connection when non-diameter traffic is encountered (RFC3588
