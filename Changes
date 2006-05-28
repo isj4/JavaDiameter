@@ -9,6 +9,8 @@ Changes 0.9.2 ->
 * NodeSettings.???watchdoginterval() and NodeSettings.???idleTimeout() added.
 * NPE when new inbound connection lost election
 * Support for connecting to relays
+* Connecting to peers on non-standard ports resulted in not being able to
+  send messages to them due to port mismatch when looking up the peer.
 
 Changes 0.9.1 -> 0.9.2
 * Reset TCP connection when non-diameter traffic is encountered (RFC3588

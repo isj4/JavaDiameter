@@ -985,7 +985,7 @@ public class Node {
 			}
 		}
 		
-		conn.peer = new Peer(conn.channel.socket().getInetAddress());
+		conn.peer = new Peer(conn.channel.socket().getInetAddress(),conn.channel.socket().getPort());
 		conn.peer.host(host_id);
 		conn.host_id = host_id;
 		
@@ -1020,7 +1020,7 @@ public class Node {
 		host_id = new AVP_UTF8String(avp).queryValue();
 		logger.log(Level.FINER,"Node:Peer's origin-host-id is '"+host_id+"'");
 		
-		conn.peer = new Peer(conn.channel.socket().getInetAddress());
+		conn.peer = new Peer(conn.channel.socket().getInetAddress(),conn.channel.socket().getPort());
 		conn.peer.host(host_id);
 		conn.host_id = host_id;
 		boolean rc = handleCEx(msg,conn);
