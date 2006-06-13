@@ -1,3 +1,3 @@
 java -cp .:examples/cc -Djava.util.logging.config.file=log.properties cc_test_server isjsys.int.i1.dk example.net 
 java -cp .:examples/cc -Djava.util.logging.config.file=log.properties cc_test_client foo.boo.goo boo.org isjsys.int.i1.dk 3868
-
+java -cp .:examples/relay -Djava.util.logging.config.file=log.properties simple_relay 42 isjsys-i0.int.i1.dk example.net isjsys-i1.int.i1.dk i1.dk

@@ -64,6 +64,7 @@ CLASSES=$P/packunpack.class \
 	examples/asr/asr.class \
 	examples/cc/cc_test_client.class \
 	examples/cc/cc_test_server.class \
+	examples/relay/simple_relay.class \
 	abnf/ABNFConverter.class \
 
 .PHONY: all
