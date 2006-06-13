@@ -129,4 +129,13 @@ public class MessageHeader {
 		hop_by_hop_identifier = request.hop_by_hop_identifier;
 		end_to_end_identifier = request.end_to_end_identifier;
 	}
+	
+	/**
+	 * Prepare an answer from the specified request header.
+	 * This is identical to prepareResponse().
+	 * @since 0.9.3
+	 */
+	public void prepareAnswer(MessageHeader request) {
+		prepareResponse(request);
+	}
 }

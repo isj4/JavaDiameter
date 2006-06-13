@@ -267,6 +267,15 @@ public class Message {
 		hdr.prepareResponse(request.hdr);
 	}
 	
+	/**
+	 * Prepare an answer from the specified request header.
+	 * This is identical to prepareResponse().
+	 * @since 0.9.3
+	 */
+	public void prepareAnswer(Message request) {
+		prepareResponse(request);
+	}
+	
 	private class Subset implements Iterable<AVP> {
 		Message msg;
 		int code;
