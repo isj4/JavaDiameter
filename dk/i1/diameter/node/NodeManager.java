@@ -18,6 +18,42 @@ import java.util.logging.Level;
  * get detailed logging (including hex-dumps of incoming and outgoing packets)
  * by putting "dk.i1.diameter.node.level = ALL" into your log.properties
  * file (or equivalent)
+ *
+ * <p>What happens when acting as a server:
+ * <ol>
+ * <li>The Node instance receives a message (request)</li>
+ * <li>The message is passed to handleRequest()</li>
+ * <li>handleRequest() processes the message (this is where your code is meant to be)</lI>
+ * <li>handleRequest() creates an answer message. Among other things it uses {@link Message#prepareAnswer(Message)}
+ * <li>answer() is called</li>
+ * <li>The answer is passed down to the Node instance which then sends or queues the message</li>
+ * </ol>
+ * <p>What happens when acting as a client:
+ * <ol>
+ * <li>sendRequest(Message,Peer[],Object) is called</li>
+ * <li>The request is passed down to the Node instance which sends or queues it</li>
+ * <li>The sendRequest() call returns</li>
+ * <li>Some time passes</li<
+ * <li>The Node instance receives the answer</li>
+ * <li>The answer is passed to handleAnswer(). This is where your code is meant to be)
+ * </ol>
+ * <p>What happens when acting as a proxy or a relay:
+ * <ol>
+ * <li>The Node instance receives a message (request)</li>
+ * <li>The message is passed to handleRequest()</li>
+ * <li>Your implementation of handleRequest() decides to forward the request</li>
+ * <li>forwardRequest() is called with a state object that among other things remembers the ConnectionKey and the hop-by-hop identifier</li>
+ * <li>The request is passed down to the Node instance which sends or queues it</li>
+ * <li>The forwardRequest() call returns</li>
+ * <li>The handleRequest() returns</li>
+ * <li>Some time passes</li>
+ * <li>The Node instance receives the answer</li>
+ * <li>The answer is passed to handleAnswer(). This is where your code is meant to be)
+ * <li>Your code detects that the answer must be forward back to where the request came from.</lI>
+ * <li>Your code restores the hop-by-hop identifier</lI>
+ * <li>forwardAnswer() is called.</li>
+ * <li>The answer is passed down to the Node instance which then sends or queues the message</li>
+ * </ol>
  */
 public class NodeManager implements MessageDispatcher, ConnectionListener {
 	private Node node;
@@ -220,6 +256,7 @@ public class NodeManager implements MessageDispatcher, ConnectionListener {
 	/**
 	 * Sends a request.
 	 * A request initiated by this node is sent to the specified connection.
+	 * The hop-by-hop identifier of the message is set. This is not symmetric with the other sendRequest method.
 	 * @param request The request.
 	 * @param connkey The connection to use.
 	 * @param state A state object that will be passed to handleAnswer() when the answer arrives.
@@ -250,6 +287,7 @@ public class NodeManager implements MessageDispatcher, ConnectionListener {
 	 * Sends a request.
 	 * The request is sent to one of the peers and an optional state object is remembered.
 	 * Please note that handleAnswer() for this request may get called before this method returns. This can happen if the peer is very fast and the OS thread scheduler decides to schedule the networking thread.
+	 * The end-to-end identifier of the message is set. This is not symmetric with the other sendRequest method.
 	 * @param request The request to send.
 	 * @param peers The candidate peers
 	 * @param state A state object to be remembered. This will be passed to the handleAnswer() method when the answer arrives.
