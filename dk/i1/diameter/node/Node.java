@@ -587,7 +587,7 @@ public class Node {
 				conn.makeSpaceInNetInBuffer();
 			}
 		} catch(java.io.IOException ex) {
-			logger.log(Level.FINE,"got IOException");
+			logger.log(Level.FINE,"got IOException",ex);
 			closeConnection(channel,conn);
 			return;
 		}
