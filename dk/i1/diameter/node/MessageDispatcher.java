@@ -21,7 +21,7 @@ public interface MessageDispatcher {
 	 *This method is called when the Node has received a message.
 	 *@param msg The incoming message
 	 *@param connkey The connection key
-	 *@param peer The peer of the connection
+	 *@param peer The peer of the connection. This is not necessarily the host that originated the message (the message can have gone via proxies)
 	 *@return True if the message was processed. False otherwise, in which case the Node will respond with a error to the peer (if the message was a request).
 	 */
 	public boolean handle(Message msg, ConnectionKey connkey, Peer peer);
