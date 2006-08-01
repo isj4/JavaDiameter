@@ -1,3 +1,5 @@
+* Examines reuslt-code in CEA and acts on it.
+
 Changes 0.9.2 -> 0.9.3
 * On shutdown peers were sent a DPR with disconnect-cause='busy' instead of the
   (correct) 'rebooting' cause.

@@ -936,6 +936,7 @@ public class Node {
 	private boolean doElection(String cer_host_id) {
 		int cmp = settings.hostId().compareTo(cer_host_id);
 		if(cmp==0) {
+			logger.log(Level.WARNING,"Got CER with host-id="+cer_host_id+". Suspecting this is a connection from ourselves.");
 			//this is a misconfigured peer or ourselves.
 			return false;
 		}
@@ -963,6 +964,7 @@ public class Node {
 			AVP avp = msg.find(ProtocolConstants.DI_ORIGIN_HOST);
 			if(avp==null) {
 				//Origin-Host-Id is missing
+				logger.log(Level.FINE,"CER from " + conn.host_id+" is missing the Origin-Host_id AVP. Rejecting.");
 				Message error_response = new Message();
 				error_response.prepareResponse(msg);
 				error_response.add(new AVP_Unsigned32(ProtocolConstants.DI_RESULT_CODE, ProtocolConstants.DIAMETER_RESULT_MISSING_AVP));
@@ -975,6 +977,7 @@ public class Node {
 			host_id = new AVP_UTF8String(avp).queryValue();
 			logger.log(Level.FINER,"Peer's origin-host-id is " + host_id);
 			if(!doElection(host_id)) {
+				logger.log(Level.FINE,"CER from " + conn.host_id+" lost the election. Rejecting.");
 				Message error_response = new Message();
 				error_response.prepareResponse(msg);
 				error_response.add(new AVP_Unsigned32(ProtocolConstants.DIAMETER_RESULT_ELECTION_LOST, ProtocolConstants.DIAMETER_RESULT_MISSING_AVP));
@@ -1011,13 +1014,28 @@ public class Node {
 	}
 	private boolean handleCEA(Message msg, Connection conn) {
 		logger.log(Level.FINE,"CEA received from "+conn.host_id);
-		String host_id;
-		AVP avp = msg.find(ProtocolConstants.DI_ORIGIN_HOST);
+		AVP avp = msg.find(ProtocolConstants.DI_RESULT_CODE);
+		if(avp==null) {
+			logger.log(Level.WARNING,"CEA from "+conn.host_id+" did not contain a Result-Code AV=P. Dropping connection");
+			return false;
+		}
+		int result_code;
+		try {
+			result_code = new AVP_Unsigned32(avp).queryValue();
+		} catch(InvalidAVPLengthException ex) {
+			logger.log(Level.INFO,"CEA from "+conn.host_id+" contained an ill-formed Result-Code. Dropping connection");
+			return false;
+		}
+		if(result_code!=ProtocolConstants.DIAMETER_RESULT_SUCCESS) {
+			logger.log(Level.INFO,"CEA from "+conn.host_id+" was rejected with Result-Code "+result_code+". Dropping connection");
+			return false;
+		}
+		avp = msg.find(ProtocolConstants.DI_ORIGIN_HOST);
 		if(avp==null) {
 			logger.log(Level.WARNING,"Peer did not include origin-host-id in CEA");
 			return false;
 		}
-		host_id = new AVP_UTF8String(avp).queryValue();
+		String host_id = new AVP_UTF8String(avp).queryValue();
 		logger.log(Level.FINER,"Node:Peer's origin-host-id is '"+host_id+"'");
 		
 		conn.peer = new Peer(conn.channel.socket().getInetAddress(),conn.channel.socket().getPort());
