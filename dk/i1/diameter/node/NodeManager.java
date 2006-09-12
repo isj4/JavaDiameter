@@ -161,6 +161,7 @@ public class NodeManager implements MessageDispatcher, ConnectionListener {
 		Message answer = new Message();
 		logger.log(Level.FINE,"Handling incoming request, command_code="+request.hdr.command_code+", peer="+peer.host()+", end2end="+request.hdr.end_to_end_identifier+", hopbyhop="+request.hdr.hop_by_hop_identifier);
 		answer.prepareResponse(request);
+		answer.hdr.setError(true);
 		answer.add(new AVP_Unsigned32(ProtocolConstants.DI_RESULT_CODE, ProtocolConstants.DIAMETER_RESULT_UNABLE_TO_DELIVER));
 		node.addOurHostAndRealm(answer);
 		Utils.copyProxyInfo(request,answer);

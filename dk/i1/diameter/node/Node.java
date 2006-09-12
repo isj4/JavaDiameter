@@ -872,6 +872,8 @@ public class Node {
 	private void rejectRequest(Message msg, Connection conn, int result_code) {
 		Message response = new Message();
 		response.prepareResponse(msg);
+		if(result_code>=3000 && result_code<=3999)
+			response.hdr.setError(true);
 		response.add(new AVP_Unsigned32(ProtocolConstants.DI_RESULT_CODE, result_code));
 		addOurHostAndRealm(response);
 		Utils.copyProxyInfo(msg,response);
@@ -1241,13 +1243,7 @@ public class Node {
 	}
 	private boolean handleUnknownRequest(Message msg, Connection conn) {
 		logger.log(Level.INFO,"Unknown request received from "+conn.host_id);
-		Message answer = new Message();
-		answer.prepareResponse(msg);
-		answer.add(new AVP_Unsigned32(ProtocolConstants.DI_RESULT_CODE, ProtocolConstants.DIAMETER_RESULT_UNABLE_TO_DELIVER));
-		addOurHostAndRealm(answer);
-		Utils.setMandatory_RFC3588(answer);
-		
-		sendMessage(answer,conn);
+		rejectRequest(msg,conn,ProtocolConstants.DIAMETER_RESULT_UNABLE_TO_DELIVER);
 		return true;
 	}
 	
