@@ -2,6 +2,7 @@
 * Error-bit was not set in error responses for protocol errors.
 * Vendor-specific accounting applications in the CE messages were incorrectly
   sent as vendor-specific authentication applications.
+* Log vendor-specific applications during capability negotiation.
 
 Changes 0.9.2 -> 0.9.3
 * On shutdown peers were sent a DPR with disconnect-cause='busy' instead of the

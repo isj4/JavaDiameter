@@ -1103,6 +1103,10 @@ public class Node {
 					s = s + "  auth_app "+i+"\n";
 				for(Integer i:result_capabilities.acct_app)
 					s = s + "  acct_app "+i+"\n";
+				for(Capability.VendorApplication va:result_capabilities.auth_vendor)
+					s = s + "  vendor_auth_app: vendor "+va.vendor_id+", application "+ va.application_id+"\n";
+				for(Capability.VendorApplication va:result_capabilities.acct_vendor)
+					s = s + "  vendor_acct_app: vendor "+va.vendor_id+", application "+ va.application_id+"\n";
 				logger.log(Level.FINEST,"Resulting capabilities:\n"+s);
 			}
 			if(result_capabilities.isEmpty()) {
