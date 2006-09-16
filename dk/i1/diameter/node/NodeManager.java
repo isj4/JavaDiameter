@@ -67,7 +67,16 @@ public class NodeManager implements MessageDispatcher, ConnectionListener {
 	 * the internal state is initialized.
 	 */
 	public NodeManager(NodeSettings settings) {
-		node = new Node(this,this,settings);
+		this(settings,null);
+	}
+	/**
+	 * Constructor for NodeManager.
+	 * A Node instance is constructed using the specified settings, node
+	 * validator (can be null) and the internal state is initialized.
+	 * @since 0.9.4
+	 */
+	public NodeManager(NodeSettings settings, NodeValidator node_validator) {
+		node = new Node(this,this,settings,node_validator);
 		this.settings = settings;
 		req_map = new HashMap<ConnectionKey,Map<Integer,Object> >();
 		this.logger = Logger.getLogger("dk.i1.diameter.node");

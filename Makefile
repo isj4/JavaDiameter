@@ -27,6 +27,8 @@ CLASSES=$P/packunpack.class \
         $P/node/Capability.class \
         $P/node/UnsupportedURIException.class \
         $P/node/EmptyHostNameException.class \
+        $P/node/NodeValidator.class \
+        $P/node/DefaultNodeValidator.class \
         $P/node/Peer.class \
         $P/node/MessageDispatcher.class \
         $P/node/DefaultMessageDispatcher.class \

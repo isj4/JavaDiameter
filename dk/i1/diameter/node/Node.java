@@ -27,6 +27,7 @@ public class Node {
 	private MessageDispatcher message_dispatcher;
 	private ConnectionListener connection_listener;
 	private NodeSettings settings;
+	private NodeValidator node_validator;
 	private NodeState node_state;
 	private Thread node_thread;
 	private Thread reconnect_thread;
@@ -43,6 +44,7 @@ public class Node {
 	 * Constructor for Node.
 	 * Constructs a Node instance with the specified parameters.
 	 * The node is not automatically started.
+	 * Implemented as <tt>this(message_dispatcher,connection_listener,settings,null);</tt>
 	 * @param message_dispatcher A message dispatcher. If null, a default dispatcher is used you. You probably dont want that one.
 	 * @param connection_listener A connection observer. Can be null.
 	 * @param settings The node settings.
@@ -52,9 +54,29 @@ public class Node {
 	            NodeSettings settings
 	           )
 	{
+		this(message_dispatcher,connection_listener,settings,null);
+	}
+	
+	/**
+	 * Constructor for Node.
+	 * Constructs a Node instance with the specified parameters.
+	 * The node is not automatically started.
+	 * @param message_dispatcher A message dispatcher. If null, a default dispatcher is used you. You probably dont want that one.
+	 * @param connection_listener A connection observer. Can be null.
+	 * @param settings The node settings.
+	 * @param node_validator a custom NodeValidator. If null then a {@link DefaultNodeValidator} is used.
+	 * @since 0.9.4
+	 */
+	public Node(MessageDispatcher message_dispatcher,
+		    ConnectionListener connection_listener,
+	            NodeSettings settings,
+		    NodeValidator node_validator
+	           )
+	{
 		this.message_dispatcher = (message_dispatcher==null) ? new DefaultMessageDispatcher() : message_dispatcher;
 		this.connection_listener = (connection_listener==null) ? new DefaultConnectionListener() : connection_listener;
 		this.settings = settings;
+		this.node_validator = (node_validator==null) ? new DefaultNodeValidator() : node_validator;
 		this.node_state = new NodeState();
 		this.logger = Logger.getLogger("dk.i1.diameter.node");
 		this.obj_conn_wait = new Object();
@@ -978,11 +1000,33 @@ public class Node {
 			}
 			host_id = new AVP_UTF8String(avp).queryValue();
 			logger.log(Level.FINER,"Peer's origin-host-id is " + host_id);
+			
+			//We must authenticate the host before doing election.
+			//Otherwise a rogue node could trick us into
+			//disconnecting legitimate peers.
+			NodeValidator.AuthenticationResult ar = node_validator.authenticateNode(host_id,conn.channel);
+			if(ar==null || !ar.known) {
+				logger.log(Level.FINE,"We do not know " + conn.host_id+" Rejecting.");
+				Message error_response = new Message();
+				error_response.prepareResponse(msg);
+				if(ar!=null && ar.result_code!=null)
+					error_response.add(new AVP_Unsigned32(ProtocolConstants.DI_RESULT_CODE,  ar.result_code));
+				else
+					error_response.add(new AVP_Unsigned32(ProtocolConstants.DI_RESULT_CODE,  ProtocolConstants.DIAMETER_RESULT_UNKNOWN_PEER));
+				addOurHostAndRealm(error_response);
+				if(ar!=null && ar.error_message!=null)
+					error_response.add(new AVP_UTF8String(ProtocolConstants.DI_ERROR_MESSAGE,ar.error_message));
+				Utils.setMandatory_RFC3588(error_response);
+				sendMessage(error_response,conn);
+				return false;
+				
+			}
+			
 			if(!doElection(host_id)) {
 				logger.log(Level.FINE,"CER from " + conn.host_id+" lost the election. Rejecting.");
 				Message error_response = new Message();
 				error_response.prepareResponse(msg);
-				error_response.add(new AVP_Unsigned32(ProtocolConstants.DIAMETER_RESULT_ELECTION_LOST, ProtocolConstants.DIAMETER_RESULT_MISSING_AVP));
+				error_response.add(new AVP_Unsigned32(ProtocolConstants.DI_RESULT_CODE, ProtocolConstants.DIAMETER_RESULT_ELECTION_LOST));
 				addOurHostAndRealm(error_response);
 				Utils.setMandatory_RFC3588(error_response);
 				sendMessage(error_response,conn);
@@ -1094,7 +1138,7 @@ public class Node {
 					throw new InvalidAVPValueException(a);
 			}
 			
-			Capability result_capabilities = Capability.calculateIntersection(settings.capabilities(), reported_capabilities);
+			Capability result_capabilities = node_validator.authorizeNode(conn.host_id, settings, reported_capabilities);
 			if(logger.isLoggable(Level.FINEST)) {
 				String s = "";
 				for(Integer i:result_capabilities.supported_vendor)
@@ -1110,7 +1154,7 @@ public class Node {
 				logger.log(Level.FINEST,"Resulting capabilities:\n"+s);
 			}
 			if(result_capabilities.isEmpty()) {
-				logger.log(Level.WARNING,"No application in common");
+				logger.log(Level.WARNING,"No application in common with "+conn.host_id);
 				if(msg.hdr.isRequest()) {
 					Message error_response = new Message();
 					error_response.prepareResponse(msg);
