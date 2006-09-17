@@ -1,3 +1,4 @@
+Changes 0.9.3 -> 0.9.4
 * Examines reuslt-code in CEA and acts on it.
 * Error-bit was not set in error responses for protocol errors.
 * Vendor-specific accounting applications in the CE messages were incorrectly
