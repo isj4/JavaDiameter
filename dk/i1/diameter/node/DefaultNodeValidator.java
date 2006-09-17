@@ -3,6 +3,9 @@ package dk.i1.diameter.node;
 /**
  * Default node validator.
  * This node validator knows all nodes and always allows any capabilities.
+ * It does this by not implementing any policy at all, blindly trusting peers
+ * that they are who they claim to be and they are allowed to process the
+ * applications they announce.
  * @since 0.9.4
  */
 public class DefaultNodeValidator implements NodeValidator {

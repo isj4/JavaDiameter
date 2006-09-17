@@ -6,8 +6,9 @@ import dk.i1.diameter.node.Capability;
  * The implementations of NodeValidator handle the verification that we
  * know the node(s) when they connect, and calculate the resulting
  * capabilities/roles we allow the nodes.
- * The Node instance uses a {@link DefaultNodeValidator} if you do not provide it with one.
- * Implementations can implement the "peer list" using plain-text files, databases, etc.
+ * If you do not provide the Node instance a node validator instance then
+ * the node instance will use a {@link DefaultNodeValidator}.
+ * Implementations can implement a "peer list" using plain-text files, databases, etc.
  * @since 0.9.4
  */
 public interface NodeValidator {
