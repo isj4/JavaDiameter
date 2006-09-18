@@ -358,7 +358,7 @@ public class Node {
 					return; //already has a connection to that peer
 				//what if we are connecting and the host_id matches?
 			}
-			logger.log(Level.INFO,"Initiating connection to '" + peer.host() +"'");
+			logger.log(Level.INFO,"Initiating connection to '" + peer.host() +"' port "+peer.port());
 			try {
 				SocketChannel channel = SocketChannel.open();
 				channel.configureBlocking(false);
