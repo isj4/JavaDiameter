@@ -5,6 +5,7 @@ Changes 0.9.3 -> 0.9.4
   sent as vendor-specific authentication applications.
 * Log vendor-specific applications during capability negotiation.
 * Implemented peer authentication (see NodeValidator interface).
+* CER with election-lost was missing the Result-Code AVP.
 
 Changes 0.9.2 -> 0.9.3
 * On shutdown peers were sent a DPR with disconnect-cause='busy' instead of the
