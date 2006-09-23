@@ -1,3 +1,6 @@
+Changes 0.9.4 -> 
+* CER election phase could easily fail.
+
 Changes 0.9.3 -> 0.9.4
 * Examines result-code in CEA and acts on it.
 * Error-bit was not set in error responses for protocol errors.

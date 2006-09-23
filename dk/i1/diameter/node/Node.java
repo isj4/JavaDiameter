@@ -968,7 +968,9 @@ public class Node {
 		synchronized(map_key_conn) {
 			for(Map.Entry<ConnectionKey,Connection> e : map_key_conn.entrySet()) {
 				Connection conn = e.getValue();
-				if(conn.host_id!=null && conn.host_id.equals(cer_host_id)) {
+				if(conn.host_id!=null && conn.host_id.equals(cer_host_id) &&
+				   conn.state==Connection.State.ready //TODO: what about TLS?
+				) {
 					if(close_other_connection) {
 						closeConnection(conn);
 						return true;
