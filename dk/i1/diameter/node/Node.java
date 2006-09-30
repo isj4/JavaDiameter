@@ -934,7 +934,7 @@ public class Node {
 	/**
 	 * Generate a new session-id.
 	 * A Session-Id consists of a mandatory part and an optional part.
-	 * The mandatory part consists of the host-id and two sequencer.
+	 * The mandatory part consists of the host-id and two sequencers.
 	 * The optional part can be anything. The caller provide some
 	 * information that will be helpful in debugging in production
 	 * environments, such as user-name or calling-station-id.
@@ -971,6 +971,7 @@ public class Node {
 				if(conn.host_id!=null && conn.host_id.equals(cer_host_id) &&
 				   conn.state==Connection.State.ready //TODO: what about TLS?
 				) {
+					logger.log(Level.INFO,"New connection to a peer we already have a connection to (" + cer_host_id + ")");
 					if(close_other_connection) {
 						closeConnection(conn);
 						return true;
