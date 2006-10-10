@@ -2,6 +2,17 @@ package dk.i1.diameter;
 
 /**
  * AVP grouping multiple AVPs together.
+ * The following example shows how to construct a grouped AVP.
+ * <pre>
+Message ccr = ...;
+ccr.add(new AVP_Grouped(ProtocolConstants.DI_VENDOR_SPECIFIC_APPLICATION_ID,
+                        new AVP[] {
+                            new AVP_Unsigned32(ProtocolConstants.DI_VENDOR_ID, my_vendor_id).setM(),
+                            new AVP_Unsigned32(ProtocolConstants.DI_ACCT_APPLICATION_ID, my_application_id).setM()
+                        }
+                       ).setM()
+       );
+</pre>
  */
 public class AVP_Grouped extends AVP {
 	public AVP_Grouped(AVP a)  throws InvalidAVPLengthException {
