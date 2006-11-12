@@ -1,17 +1,14 @@
 package dk.i1.diameter.node;
-import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
-import java.net.URI;
-import java.net.InetSocketAddress;
+import java.net.InetAddress;
+import java.util.Collection;
 
-class Connection {
+abstract class Connection {
+	NodeImplementation node_impl;
 	public Peer peer;  //initially null
 	public String host_id; //always set, updated from CEA/CER
 	public ConnectionTimers timers;
 	public ConnectionKey key;
 	private int hop_by_hop_identifier_seq;
-	SocketChannel channel;
-	ConnectionBuffers connection_buffers;
 	
 	public enum State {
 		connecting,
@@ -24,38 +21,27 @@ class Connection {
 	}
 	public State state;
 	
-	public Connection(InetSocketAddress address, long watchdog_interval, long idle_timeout) {
+	public Connection(NodeImplementation node_impl, long watchdog_interval, long idle_timeout) {
+		this.node_impl = node_impl;
 		timers = new ConnectionTimers(watchdog_interval,idle_timeout);
 		key = new ConnectionKey();
 		hop_by_hop_identifier_seq = new java.util.Random().nextInt();
 		state = State.connected_in;
-		connection_buffers = new NormalConnectionBuffers();
 	}
 	
 	public synchronized int nextHopByHopIdentifier() {
 		return hop_by_hop_identifier_seq++;
 	}
 	
-	public void makeSpaceInNetInBuffer() {
-		connection_buffers.makeSpaceInNetInBuffer();
-	}
-	public void makeSpaceInAppOutBuffer(int how_much) {
-		connection_buffers.makeSpaceInAppOutBuffer(how_much);
-	}
-	public void consumeAppInBuffer(int bytes) {
-		connection_buffers.consumeAppInBuffer(bytes);
-	}
-	public void consumeNetOutBuffer(int bytes) {
-		connection_buffers.consumeNetOutBuffer(bytes);
-	}
-	public boolean hasNetOutput() {
-		return connection_buffers.netOutBuffer().position()!=0;
-	}
+	abstract void close();
 	
-	void processNetInBuffer() {
-		connection_buffers.processNetInBuffer();
-	}
-	void processAppOutBuffer() {
-		connection_buffers.processAppOutBuffer();
-	}
+	abstract InetAddress toInetAddress(); //todo: eliminate
+	
+	abstract void sendMessage(byte[] raw);
+	
+	abstract Object getRelevantNodeAuthInfo();
+	
+	abstract Collection<InetAddress> getLocalAddresses();
+	
+	abstract Peer toPeer();
 }

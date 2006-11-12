@@ -1,13 +1,11 @@
 package dk.i1.diameter.node;
 import dk.i1.diameter.*;
 import java.util.*;
-import java.nio.channels.*;
-import java.nio.ByteBuffer;
-import java.net.*;
+import java.net.InetAddress;
 import java.util.logging.Logger;
 import java.util.logging.Level;
+import java.lang.reflect.Constructor;
 
-import java.io.*;
 
 /**
  * A Diameter node.
@@ -16,11 +14,18 @@ import java.io.*;
  * the MessageDispatcher. When connections are established or closed the
  * ConnectionListener is notified. Message can be sent and received through the
  * node but no state is maintained per message.
- * <p>Node is quite low-level. You probably want to use NodeManager instead.
+ * <p>Node is quite low-level. You probably want to use {@link NodeManager} instead.
  * <p>Node instances logs with the name "dk.i1.diameter.node", so you can
  * get detailed logging (including hex-dumps of incoming and outgoing packets)
  * by putting "dk.i1.diameter.node.level = ALL" into your log.properties
  * file (or equivalent)
+ * <p>The Node instance uses two properties when deciding which transport-protocols to support:
+ * <ul>
+ * <li><tt>dk.i1.diameter.node.use_tcp=</tt> [<tt><em>true</em></tt>|<tt><em>false</em></tt>|<tt><em>maybe</em></tt>] (default:true)</li>
+ * <li><tt>dk.i1.diameter.node.use_sctp=</tt> [<tt><em>true</em></tt>|<tt><em>false</em></tt>|<tt><em>maybe</em></tt>] (default:maybe)</li>
+ * </ul>
+ * If a setting is set to true and the support class could not be loaded, then start operation fails.
+ * You can override the properties by changing the setting with {@link NodeSettings#setUseTCP} and {@link NodeSettings#setUseSCTP}.
  * @see NodeManager
  */
 public class Node {
@@ -29,16 +34,15 @@ public class Node {
 	private NodeSettings settings;
 	private NodeValidator node_validator;
 	private NodeState node_state;
-	private Thread node_thread;
 	private Thread reconnect_thread;
 	private boolean please_stop;
 	private long shutdown_deadline;
-	private Selector selector;
-	private ServerSocketChannel serverChannel;
 	private Map<ConnectionKey,Connection> map_key_conn;
 	private Set<Peer> persistent_peers;
 	private Logger logger;
 	private Object obj_conn_wait;
+	private NodeImplementation tcp_node;
+	private NodeImplementation sctp_node;
 	
 	/**
 	 * Constructor for Node.
@@ -50,7 +54,7 @@ public class Node {
 	 * @param settings The node settings.
 	 */
 	public Node(MessageDispatcher message_dispatcher,
-		    ConnectionListener connection_listener,
+	            ConnectionListener connection_listener,
 	            NodeSettings settings
 	           )
 	{
@@ -68,9 +72,9 @@ public class Node {
 	 * @since 0.9.4
 	 */
 	public Node(MessageDispatcher message_dispatcher,
-		    ConnectionListener connection_listener,
+	            ConnectionListener connection_listener,
 	            NodeSettings settings,
-		    NodeValidator node_validator
+	            NodeValidator node_validator
 	           )
 	{
 		this.message_dispatcher = (message_dispatcher==null) ? new DefaultMessageDispatcher() : message_dispatcher;
@@ -80,20 +84,25 @@ public class Node {
 		this.node_state = new NodeState();
 		this.logger = Logger.getLogger("dk.i1.diameter.node");
 		this.obj_conn_wait = new Object();
+		this.tcp_node = null;
+		this.sctp_node = null;
 	}
 	
 	/**
 	 * Start the node.
 	 * The node is started. If the port to listen on is already used by
 	 * another application or some other initial network error occurs a java.io.IOException is thrown.
+	 * @throws java.io.IOException Usually when a priviledge port is specified, system out of resoruces, etc.
+	 * @throws UnsupportedTransportProtocolException If a transport-protocol has been specified as mandatory but could not be initialised.
 	 */
-	public void start() throws java.io.IOException {
+	public void start() throws java.io.IOException, UnsupportedTransportProtocolException {
 		logger.log(Level.INFO,"Starting Diameter node");
 		please_stop = false;
 		prepare();
-		node_thread = new SelectThread();
-		node_thread.setDaemon(true);
-		node_thread.start();
+		if(tcp_node!=null)
+			tcp_node.start();
+		if(sctp_node!=null)
+			sctp_node.start();
 		reconnect_thread = new ReconnectThread();
 		reconnect_thread.setDaemon(true);
 		reconnect_thread.start();
@@ -119,8 +128,12 @@ public class Node {
 	 */
 	public void stop(long grace_time)  {
 		logger.log(Level.INFO,"Stopping Diameter node");
+		shutdown_deadline = System.currentTimeMillis() + grace_time;
+		if(tcp_node!=null)
+			tcp_node.initiateStop(shutdown_deadline);
+		if(sctp_node!=null)
+			sctp_node.initiateStop(shutdown_deadline);
 		synchronized(map_key_conn) {
-			shutdown_deadline = System.currentTimeMillis() + grace_time;
 			please_stop = true;
 			//Close all the non-ready connections, initiate close on ready ones.
 			for(Iterator<Map.Entry<ConnectionKey,Connection>> it = map_key_conn.entrySet().iterator();
@@ -135,7 +148,7 @@ public class Node {
 					case connected_out:
 						logger.log(Level.FINE,"Closing connection to "+conn.host_id+" because we are shutting down");
 						it.remove();
-						try { conn.channel.close(); } catch(java.io.IOException ex) {}
+						conn.close();
 						break;
 					case tls:
 						break; //don't know what to do here yet.
@@ -149,32 +162,39 @@ public class Node {
 				}
 			}
 		}
-		selector.wakeup();
+		if(tcp_node!=null)
+			tcp_node.wakeup();
+		if(sctp_node!=null)
+			sctp_node.wakeup();
 		synchronized(map_key_conn) {
 			map_key_conn.notify();
 		}
 		try {
-			node_thread.join();
+			if(tcp_node!=null)
+				tcp_node.join();
+			if(sctp_node!=null)
+				sctp_node.join();
 			reconnect_thread.join();
 		} catch(java.lang.InterruptedException ex) {}
-		node_thread = null;
 		reconnect_thread = null;
+		//close all connections not already closed
+		//(todo) if a connection's out-buffer is non-empty we should wait for it to empty.
+		synchronized(map_key_conn) {
+			for(Map.Entry<ConnectionKey,Connection> e : map_key_conn.entrySet()) {
+				Connection conn = e.getValue();
+				closeConnection(conn);
+			}
+		}
 		//other cleanup
 		synchronized(obj_conn_wait) {
 			obj_conn_wait.notifyAll();
 		}
 		map_key_conn = null;
 		persistent_peers = null;
-		if(serverChannel!=null) {
-			try {
-				serverChannel.close();
-			} catch(java.io.IOException ex) {}
-		}
-		serverChannel=null;
-		try {
-			selector.close();
-		} catch(java.io.IOException ex) {}
-		selector = null;
+		if(tcp_node!=null)
+			tcp_node.closeIO();
+		if(sctp_node!=null)
+			sctp_node.closeIO();
 		logger.log(Level.INFO,"Diameter node stopped");
 	}
 	
@@ -271,7 +291,7 @@ public class Node {
 		synchronized(map_key_conn) {
 			Connection conn = map_key_conn.get(connkey);
 			if(conn!=null)
-				return ((InetSocketAddress)((conn.channel).socket().getRemoteSocketAddress())).getAddress();
+				return conn.toInetAddress();
 			else
 				return null;
 		}
@@ -307,24 +327,10 @@ public class Node {
 		logger.log(Level.FINER,"command=" + msg.hdr.command_code +", to=" + (conn.peer!=null ? conn.peer.toString() : conn.host_id));
 		byte[] raw = msg.encode();
 		
-		boolean was_empty = !conn.hasNetOutput();
-		conn.makeSpaceInAppOutBuffer(raw.length);
-		//System.out.println("sendMessage: A: position=" + conn.out_buffer.position() + " limit=" + conn.out_buffer.limit());
-		conn.connection_buffers.appOutBuffer().put(raw);
-		conn.connection_buffers.processAppOutBuffer();
-		//System.out.println("sendMessage: B: position=" + conn.out_buffer.position() + " limit=" + conn.out_buffer.limit());
-		
 		if(logger.isLoggable(Level.FINEST))
 			hexDump(Level.FINEST,"Raw packet encoded",raw,0,raw.length);
-
-		if(was_empty) {
-			handleWritable(conn.channel,conn);
-			if(conn.hasNetOutput()) {
-				try {
-					conn.channel.register(selector, SelectionKey.OP_READ|SelectionKey.OP_WRITE, conn);
-				} catch(java.nio.channels.ClosedChannelException ex) { }
-			}
-		}
+		
+		conn.sendMessage(raw);
 	}
 	
 	/**
@@ -341,6 +347,7 @@ public class Node {
 	 * has finished threads waiting in {@link #waitForConnection} are woken.
 	 * <p>
 	 * You cannot initiate connections before the node has been started.
+	 * Connection to peers specifying an unsupported transport-protocl are simply ignored.
 	 * @param peer The peer that the node should try to establish a connection to.
 	 * @param persistent If true the Node wil try to keep a connection open to the peer.
 	 */
@@ -359,27 +366,21 @@ public class Node {
 				//what if we are connecting and the host_id matches?
 			}
 			logger.log(Level.INFO,"Initiating connection to '" + peer.host() +"' port "+peer.port());
-			try {
-				SocketChannel channel = SocketChannel.open();
-				channel.configureBlocking(false);
-				InetSocketAddress address = new InetSocketAddress(peer.host(),peer.port());
-				Connection conn = new Connection(address,settings.watchdogInterval(),settings.idleTimeout());
+			NodeImplementation node_impl=null;
+			switch(peer.transportProtocol()) {
+				case tcp:
+					node_impl = tcp_node;
+					break;
+				case sctp:
+					node_impl = sctp_node;
+					break;
+			}
+			if(node_impl!=null) {
+				Connection conn = node_impl.newConnection(settings.watchdogInterval(),settings.idleTimeout());
 				conn.host_id = peer.host();
 				conn.peer = peer;
-				try {
-					channel.connect(address);
-				} catch(java.nio.channels.UnresolvedAddressException ex) {
-					return;
-				}
-				conn.state = Connection.State.connecting;
-				conn.channel = channel;
-				selector.wakeup();
-				channel.register(selector, SelectionKey.OP_CONNECT, conn);
-				//System.out.println("PRE: size=" + map_key_conn.size());
-				map_key_conn.put(conn.key,conn);
-				//System.out.println("POST: size=" + map_key_conn.size());
-			} catch(java.io.IOException ex) {
-				logger.log(Level.WARNING,"java.io.IOException caught while initiating connection to '" + peer.host() +"'.", ex);
+				if(node_impl.initiateConnection(conn,peer))
+					map_key_conn.put(conn.key,conn);
 			}
 		}
 	}
@@ -405,157 +406,93 @@ public class Node {
 		}
 	}
 	
-	private void prepare() throws java.io.IOException {
-		// create a new Selector for use below
-		selector = Selector.open();
-		if(settings.port()!=0) {
-			// allocate an unbound server socket channel
-			serverChannel = ServerSocketChannel.open();
-			// Get the associated ServerSocket to bind it with
-			ServerSocket serverSocket = serverChannel.socket();
-			// set the port the server channel will listen to
-			serverSocket.bind(new InetSocketAddress (settings.port()));
+	private static Boolean getUseOption(Boolean setting, String property_name, Boolean default_setting) {
+		if(setting!=null)
+			return setting;
+		String v = System.getProperty(property_name);
+		if(v!=null && v.equals("true"))
+			return true;
+		if(v!=null && v.equals("false"))
+			return false;
+		if(v!=null && v.equals("maybe"))
+			return null;
+		return default_setting;
+	}
+	
+	private NodeImplementation instantiateNodeImplementation(Level loglevel, String class_name) {
+		Class our_cls = this.getClass();
+		ClassLoader cls_ldr = our_cls.getClassLoader();
+		if(cls_ldr==null) //according to sun it can be
+			cls_ldr = ClassLoader.getSystemClassLoader();
+		try {
+			Class cls = cls_ldr.loadClass(class_name);
+			Constructor<NodeImplementation> ctor;
+			try {
+				ctor = cls.getConstructor(this.getClass(),
+			                        	  settings.getClass(),
+			                        	  logger.getClass()
+			                        	 );
+			} catch(java.lang.NoSuchMethodException ex) {
+				logger.log(Level.WARNING,"Could not find constructor for "+class_name,ex);
+				return null;
+			}
+			if(ctor==null) return null;
+			try {
+				NodeImplementation instance =  ctor.newInstance(this,settings,logger);
+				return instance;
+			} catch(java.lang.InstantiationException ex) {
+				return null;
+			} catch(java.lang.IllegalAccessException ex) {
+				return null;
+			} catch(java.lang.reflect.InvocationTargetException ex) {
+				return null;
+			}
+		} catch(ClassNotFoundException ex) {
+			logger.log(loglevel,"class "+class_name+" not found/loaded",ex);
+			return null;
 		}
+		
+		
+	}
+	
+	private NodeImplementation loadTransportProtocol(Boolean setting, String setting_name, Boolean default_setting,
+	                                                 String class_name, String short_name)
+	                                                 throws java.io.IOException, UnsupportedTransportProtocolException
+	{
+		Boolean b;
+		b = getUseOption(setting,setting_name,default_setting);
+		NodeImplementation node_impl = null;
+		if(b==null || b) {
+			node_impl = instantiateNodeImplementation(b!=null?Level.INFO:Level.FINE,class_name);
+			if(node_impl!=null)
+				node_impl.openIO();
+			else if(b!=null)
+				throw new UnsupportedTransportProtocolException(short_name+" support could not be loaded");
+		}
+		return node_impl;
+	}
+	private void prepare() throws java.io.IOException, UnsupportedTransportProtocolException {
+		tcp_node =  loadTransportProtocol(settings.useTCP(),"dk.i1.diameter.node.use_tcp",true,
+		                                  "dk.i1.diameter.node.TCPNode", "TCP");
+		sctp_node = loadTransportProtocol(settings.useSCTP(),"dk.i1.diameter.node.use_sctp",null,
+		                                  "dk.i1.diameter.node.SCTPNode", "SCTP");
+		if(tcp_node==null && sctp_node==null)
+			logger.log(Level.WARNING,"No transport protocol classes could be loaded. The stack is running but without have any connectivity");
+		
 		map_key_conn = new HashMap<ConnectionKey,Connection>();
 		persistent_peers = new HashSet<Peer>();
 	}
 	
-	private class SelectThread extends Thread {
-	    public SelectThread() {
-			super("DiameterNode thread");
-		}
-	    public void run() {
-			try {
-				run_();
-				if(serverChannel!=null)
-					serverChannel.close();
-			} catch(java.io.IOException ex) {}
-		}
-	    private void run_() throws java.io.IOException {
-		if(serverChannel!=null) {
-			// set non-blocking mode for the listening socket
-			serverChannel.configureBlocking(false);
-			
-			// register the ServerSocketChannel with the Selector
-			serverChannel.register(selector, SelectionKey.OP_ACCEPT);
-		}
-		
-		for(;;) {
-			if(please_stop) {
-				if(System.currentTimeMillis()>=shutdown_deadline)
-					break;
-				synchronized(map_key_conn) {
-					if(map_key_conn.isEmpty())
-						break;
-				}
-			}
-			long timeout = calcNextTimeout();
-			int n;
-			//System.out.println("selecting...");
-			if(timeout!=-1) {
-				long now=System.currentTimeMillis();
-				if(timeout>now)
-					n = selector.select(timeout-now);
-				else
-					n = selector.selectNow();
-			} else
-				n = selector.select();
-			//System.out.println("Woke up from select()");
-			
-			// get an iterator over the set of selected keys
-			Iterator it = selector.selectedKeys().iterator();
-			// look at each key in the selected set
-			while(it.hasNext()) {
-				SelectionKey key = (SelectionKey)it.next();
-				
-				if(key.isAcceptable()) {
-					logger.log(Level.FINE,"Got an inbound connection (key is acceptable)");
-					ServerSocketChannel server = (ServerSocketChannel)key.channel();
-					SocketChannel channel = server.accept();
-					InetSocketAddress address = (InetSocketAddress)channel.socket().getRemoteSocketAddress();
-					logger.log(Level.INFO,"Got an inbound connection from " + address.toString());
-					if(!please_stop) {
-						Connection conn = new Connection(address,settings.watchdogInterval(),settings.idleTimeout());
-						conn.host_id = address.getAddress().getHostAddress();
-						conn.state = Connection.State.connected_in;
-						conn.channel = channel;
-						channel.configureBlocking(false);
-						channel.register(selector, SelectionKey.OP_READ, conn);
-
-						synchronized(map_key_conn) {
-							map_key_conn.put(conn.key,conn);
-						}
-					} else {
-						//We don't want to add the connection if were are shutting down.
-						channel.close();
-					}
-				} else if(key.isConnectable()) {
-					logger.log(Level.FINE,"An outbound connection is ready (key is connectable)");
-					SocketChannel channel = (SocketChannel)key.channel();
-					Connection conn = (Connection)key.attachment();
-					try {
-						if(channel.finishConnect()) {
-							logger.log(Level.FINEST,"Connected!");
-							conn.state = Connection.State.connected_out;
-							channel.register(selector, SelectionKey.OP_READ, conn);
-							sendCER(channel,conn);
-						}
-					} catch(java.io.IOException ex) {
-						logger.log(Level.WARNING,"Connection to '"+conn.host_id+"' failed", ex);
-						try {
-							channel.register(selector, 0);
-							channel.close();
-						} catch(java.io.IOException ex2) {}
-						synchronized(map_key_conn) {
-							map_key_conn.remove(conn.key);
-						}
-					}
-				} else if(key.isReadable()) {
-					logger.log(Level.FINEST,"Key is readable");
-					//System.out.println("key is readable");
-					SocketChannel channel = (SocketChannel)key.channel();
-					Connection conn = (Connection)key.attachment();
-					handleReadable(channel,conn);
-					if(conn.state!=Connection.State.closed &&
-					   conn.hasNetOutput())
-						channel.register(selector, SelectionKey.OP_READ|SelectionKey.OP_WRITE, conn);
-				} else if(key.isWritable()) {
-					logger.log(Level.FINEST,"Key is writable");
-					SocketChannel channel = (SocketChannel)key.channel();
-					Connection conn = (Connection)key.attachment();
-					synchronized(map_key_conn) {
-						handleWritable(channel,conn);
-						if(conn.state!=Connection.State.closed &&
-						   conn.hasNetOutput())
-							channel.register(selector, SelectionKey.OP_READ|SelectionKey.OP_WRITE, conn);
-					}
-				}
-				
-				// remove key from selected set, it's been handled
-				it.remove();
-			}
-			
-			runTimers();
-		}
-		
-		//close all connections
-		//(todo) if a connection's out-buffer is non-empty we should wait for it to empty.
-		synchronized(map_key_conn) {
-			for(Map.Entry<ConnectionKey,Connection> e : map_key_conn.entrySet()) {
-				Connection conn = e.getValue();
-				closeConnection(conn);
-			}
-		}
-		
-		//selector is closed in stop()
-	    }
-	}
 	
-	private long calcNextTimeout() {
+	/**Calculate next timeout for a node implementation.
+	 * Located here because the calculation involves examining each open connection.
+	 */
+	long calcNextTimeout(NodeImplementation node_impl) {
 		long timeout = -1;
 		synchronized(map_key_conn) {
 			for(Map.Entry<ConnectionKey,Connection> e : map_key_conn.entrySet()) {
 				Connection conn = e.getValue();
+				if(conn.node_impl!=node_impl) continue;
 				boolean ready = conn.state==Connection.State.ready;
 				long conn_timeout = conn.timers.calcNextTimeout(ready);
 				if(timeout==-1 || conn_timeout<timeout)
@@ -567,10 +504,14 @@ public class Node {
 		return timeout;
 	}
 	
-	private void runTimers() {
+	/**Run timers on the connections for a node implementation.
+	 * Located here because it involves examining each open connection.
+	 */
+	void runTimers(NodeImplementation node_impl) {
 		synchronized(map_key_conn) {
 			for(Map.Entry<ConnectionKey,Connection> e : map_key_conn.entrySet()) {
 				Connection conn = e.getValue();
+				if(conn.node_impl!=node_impl) continue;
 				boolean ready = conn.state==Connection.State.ready;
 				switch(conn.timers.calcAction(ready)) {
 					case none:
@@ -596,30 +537,14 @@ public class Node {
 		}
 	}
 	
-	private void handleReadable(SocketChannel channel, Connection conn) {
-		logger.log(Level.FINEST,"handlereadable()...");
-		conn.makeSpaceInNetInBuffer();
-		ConnectionBuffers connection_buffers = conn.connection_buffers;
-		logger.log(Level.FINEST,"pre: conn.in_buffer.position=" + connection_buffers.netInBuffer().position());
- 		int count;
-		try {
-			int loop_count=0;
-	 		while((count=channel.read(connection_buffers.netInBuffer()))>0 && loop_count++<3) {
-				logger.log(Level.FINEST,"readloop: connection_buffers.netInBuffer().position=" + connection_buffers.netInBuffer().position());
-				conn.makeSpaceInNetInBuffer();
-			}
-		} catch(java.io.IOException ex) {
-			logger.log(Level.FINE,"got IOException",ex);
-			closeConnection(channel,conn);
-			return;
-		}
-		conn.processNetInBuffer();
-		processInBuffer(channel,conn);
- 		if(count<0 && conn.state!=Connection.State.closed) {
-			logger.log(Level.FINE,"count<0");
-			closeConnection(channel,conn);
-			return;
- 		}
+	
+	/**Logs a correctly decoded message*/
+	void logRawDecodedPacket(byte[] raw, int offset, int msg_size) {
+		hexDump(Level.FINEST,"Raw packet decoded",raw,offset,msg_size);
+	}
+	/**Logs an incorrectly decoded (non-diameter-)message*/
+	void logGarbagePacket(Connection conn, byte[] raw, int offset, int msg_size) {
+		hexDump(Level.WARNING,"Garbage from "+conn.host_id,raw,offset,msg_size);
 	}
 	
 	void hexDump(Level level, String msg, byte buf[], int offset, int bytes) {
@@ -655,95 +580,15 @@ public class Node {
 		logger.log(level,sb.toString());
 	}
 	
-	private void processInBuffer(SocketChannel channel, Connection conn) {
-		ByteBuffer app_in_buffer = conn.connection_buffers.appInBuffer();
-		logger.log(Level.FINEST,"pre: app_in_buffer.position=" + app_in_buffer.position());
-		int raw_bytes=app_in_buffer.position();
-		byte[] raw = new byte[raw_bytes];
-		app_in_buffer.position(0);
-		app_in_buffer.get(raw);
-		app_in_buffer.position(raw_bytes);
-		int offset=0;
-		//System.out.println("processInBuffer():looping");
-		while(offset<raw.length) {
-			//System.out.println("processInBuffer(): inside loop offset=" + offset);
-			int bytes_left = raw.length-offset;
-			if(bytes_left<4) break;
-			int msg_size = Message.decodeSize(raw,offset);
-			if(bytes_left<msg_size) break;
-			Message msg = new Message();
-			Message.decode_status status = msg.decode(raw,offset,msg_size);
-			//System.out.println("processInBuffer():decoded, status=" + status);
-			switch(status) {
-				case decoded: {
-					if(logger.isLoggable(Level.FINEST))
-						hexDump(Level.FINEST,"Raw packet decoded",raw,offset,msg_size);
-					offset += msg_size;
-					boolean b = handleMessage(msg,conn);
-					if(!b) {
-						logger.log(Level.FINER,"handle error");
-						closeConnection(channel,conn);
-						return;
-					}
-					break;
-				}
-				case not_enough:
-					break;
-				case garbage:
-					hexDump(Level.WARNING,"Garbage from "+conn.host_id,raw,offset,msg_size);
-					closeConnection(channel,conn,true);
-					return;
-			}
-			if(status==Message.decode_status.not_enough) break;
-		}
-		conn.consumeAppInBuffer(offset);
-		//System.out.println("processInBuffer(): the end");
-	}
-	private void handleWritable(SocketChannel channel, Connection conn) {
-		logger.log(Level.FINEST,"handleWritable():");
-		ByteBuffer net_out_buffer = conn.connection_buffers.netOutBuffer();
-		//int bytes = net_out_buffer.position();
-		//net_out_buffer.rewind();
-		//net_out_buffer.limit(bytes);
-		net_out_buffer.flip();
-		//logger.log(Level.FINEST,"                :bytes= " + bytes);
-		int count;
-		try {
-			count = channel.write(net_out_buffer);
-			if(count<0) {
-				closeConnection(channel,conn);
-				return;
-			}
-			//conn.consumeNetOutBuffer(count);
-			net_out_buffer.compact();
-			conn.processAppOutBuffer();
-			if(!conn.hasNetOutput())
-				channel.register(selector, SelectionKey.OP_READ, conn);
-		} catch(java.io.IOException ex) {
-			closeConnection(channel,conn);
-			return;
-		}
-	}
 	
-	private void closeConnection(Connection conn)  {
-		closeConnection(conn.channel,conn);
+	void closeConnection(Connection conn)  {
+		closeConnection(conn,false);
 	}
-	private void closeConnection(SocketChannel channel, Connection conn) {
-		closeConnection(channel,conn,false);
-	}
-	private void closeConnection(SocketChannel channel, Connection conn, boolean reset) {
+	void closeConnection(Connection conn, boolean reset) {
 		if(conn.state==Connection.State.closed) return;
 		logger.log(Level.INFO,"Closing connection to " + (conn.peer!=null ? conn.peer.toString() : conn.host_id));
 		synchronized(map_key_conn) {
-			try {
-				channel.register(selector, 0);
-				if(reset) {
-					//Set lingertime to zero to force a RST when closing the socket
-					//rfc3588, section 2.1
-					channel.socket().setSoLinger(true,0);
-				}
-				channel.close();
-			} catch(java.io.IOException ex) {}
+			conn.node_impl.close(conn,reset);
 			map_key_conn.remove(conn.key);
 			conn.state = Connection.State.closed;
 		}
@@ -758,7 +603,7 @@ public class Node {
 		conn.state = Connection.State.closing;
 	}
 	
-	private boolean handleMessage(Message msg, Connection conn) {
+	boolean handleMessage(Message msg, Connection conn) {
 		if(logger.isLoggable(Level.FINE))
 			logger.log(Level.FINE,"command_code=" + msg.hdr.command_code + " application_id=" + msg.hdr.application_id + " connection_state=" + conn.state);
 		conn.timers.markActivity();
@@ -1007,7 +852,7 @@ public class Node {
 			//We must authenticate the host before doing election.
 			//Otherwise a rogue node could trick us into
 			//disconnecting legitimate peers.
-			NodeValidator.AuthenticationResult ar = node_validator.authenticateNode(host_id,conn.channel);
+			NodeValidator.AuthenticationResult ar = node_validator.authenticateNode(host_id,conn.getRelevantNodeAuthInfo());
 			if(ar==null || !ar.known) {
 				logger.log(Level.FINE,"We do not know " + conn.host_id+" Rejecting.");
 				Message error_response = new Message();
@@ -1037,7 +882,7 @@ public class Node {
 			}
 		}
 		
-		conn.peer = new Peer(conn.channel.socket().getInetAddress(),conn.channel.socket().getPort());
+		conn.peer = conn.toPeer();
 		conn.peer.host(host_id);
 		conn.host_id = host_id;
 		
@@ -1087,7 +932,7 @@ public class Node {
 		String host_id = new AVP_UTF8String(avp).queryValue();
 		logger.log(Level.FINER,"Node:Peer's origin-host-id is '"+host_id+"'");
 		
-		conn.peer = new Peer(conn.channel.socket().getInetAddress(),conn.channel.socket().getPort());
+		conn.peer = conn.toPeer();
 		conn.peer.host(host_id);
 		conn.host_id = host_id;
 		boolean rc = handleCEx(msg,conn);
@@ -1198,7 +1043,10 @@ public class Node {
 		return true;
 	}
 	
-	private void sendCER(SocketChannel channel, Connection conn)  {
+	void initiateCER(Connection conn) {
+		sendCER(conn);
+	}
+	private void sendCER(Connection conn)  {
 		logger.log(Level.FINE,"Sending CER to "+conn.host_id);
 		Message cer = new Message();
 		cer.hdr.setRequest(true);
@@ -1215,8 +1063,9 @@ public class Node {
 		//Origin-Host, Origin-Realm
 		addOurHostAndRealm(msg);
 		//Host-IP-Address
-		//  This is not really that good..
-		msg.add(new AVP_Address(ProtocolConstants.DI_HOST_IP_ADDRESS, conn.channel.socket().getLocalAddress()));
+		Collection<InetAddress> local_addresses = conn.getLocalAddresses();
+		for(InetAddress ia : local_addresses)
+			msg.add(new AVP_Address(ProtocolConstants.DI_HOST_IP_ADDRESS, ia));
 		//Vendor-Id
 		msg.add(new AVP_Unsigned32(ProtocolConstants.DI_VENDOR_ID, settings.vendorId()));
 		//Product-Name
@@ -1328,5 +1177,29 @@ public class Node {
 		Utils.setMandatory_RFC3588(dpr);
 		
 		sendMessage(dpr,conn);
+	}
+	
+	boolean anyOpenConnections(NodeImplementation node_impl) {
+		synchronized(map_key_conn) {
+			for(Map.Entry<ConnectionKey,Connection> e : map_key_conn.entrySet()) {
+				Connection conn = e.getValue();
+				if(conn.node_impl==node_impl)
+					return true;
+			}
+		}
+		return false;
+	}
+	void registerInboundConnection(Connection conn) {
+		synchronized(map_key_conn) {
+			map_key_conn.put(conn.key,conn);
+		}
+	}
+	void unregisterConnection(Connection conn) {
+		synchronized(map_key_conn) {
+			map_key_conn.remove(conn.key);
+		}
+	}
+	Object getLockObject() {
+		return map_key_conn;
 	}
 }

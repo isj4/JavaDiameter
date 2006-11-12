@@ -85,8 +85,9 @@ public class NodeManager implements MessageDispatcher, ConnectionListener {
 	/**
 	 * Start the node manager.
 	 * Starts the embedded Node.
+	 * For details about {@link UnsupportedTransportProtocolException} see {@link Node#start}
 	 */
-	public void start() throws java.io.IOException {
+	public void start() throws java.io.IOException, UnsupportedTransportProtocolException {
 		node.start();
 	}
 	/**

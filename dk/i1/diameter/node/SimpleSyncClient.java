@@ -25,7 +25,7 @@ public class SimpleSyncClient extends NodeManager {
 	 * established.
 	 *@see NodeManager#waitForConnection
 	 */
-	public void start() throws java.io.IOException {
+	public void start() throws java.io.IOException, UnsupportedTransportProtocolException {
 		super.start();
 		for(Peer p : peers) {
 			node().initiateConnection(p,true);

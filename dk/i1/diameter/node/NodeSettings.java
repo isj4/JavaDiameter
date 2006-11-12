@@ -59,6 +59,8 @@ public class NodeSettings {
 	private int firmware_revision;
 	private long watchdog_interval;
 	private long idle_close_timeout;
+	private Boolean use_tcp;
+	private Boolean use_sctp;
 	
 	/**
 	 * Constructor for NodeSettings.
@@ -184,5 +186,49 @@ public class NodeSettings {
 		if(timeout<0)
 			throw new InvalidSettingException("idle timeout cannot be negative");
 		this.idle_close_timeout = timeout;
+	}
+	
+	/**Returns the setting for using TCP.
+	 * @return A boolean object, or null if not set.
+	 * @since 0.9.5
+	 */
+	public Boolean useTCP() {
+		return use_tcp;
+	}
+	/** Change the setting for using TCP
+	 * Sets the setting to the spciefied value, which can be null.
+	 * When the setting is:
+	 <dl>
+	 <dt>true</dt><dd>then the stack will create a TCP sub-node.</dd>
+	 <dt>false</dt><dd>then the stack will not create a TCP sub-node.</dd>
+	 <dt>null</dt><dd>then the stack will use the a property instead (see {@link Node} for details}.</dd>
+	 </dl>
+	 * @param use_tcp New TCP use setting. Can be null.
+	 * @since 0.9.5
+	 */
+	public void setUseTCP(Boolean use_tcp) {
+		this.use_tcp = use_tcp;
+	}
+
+	/**Returns the setting for using SCTP.
+	 * @return A boolean object, or null if not set.
+	 * @since 0.9.5
+	 */
+	public Boolean useSCTP() {
+		return use_sctp;
+	}
+	/** Change the setting for using SCTP
+	 * Sets the setting to the spciefied value, which can be null.
+	 * When the setting is:
+	 <dl>
+	 <dt>true</dt><dd>then the stack will create a SCTP sub-node.</dd>
+	 <dt>false</dt><dd>then the stack will not create a SCTP sub-node.</dd>
+	 <dt>null</dt><dd>then the stack will use the a property instead (see {@link Node} for details}.</dd>
+	 </dl>
+	 * @param use_sctp New SCTP use setting. Can be null.
+	 * @since 0.9.5
+	 */
+	public void setUseSCTP(Boolean use_sctp) {
+		this.use_sctp = use_sctp;
 	}
 }

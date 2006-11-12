@@ -49,6 +49,10 @@ CLASSES=$P/packunpack.class \
         $P/node/NotARequestException.class \
         $P/node/NotProxiableException.class \
         $P/node/NodeState.class \
+        $P/node/NodeImplementation.class \
+        $P/node/TCPConnection.class \
+        $P/node/TCPNode.class \
+        $P/node/UnsupportedTransportProtocolException.class \
         $P/node/Node.class \
         $P/node/NodeManager.class \
         $P/node/SimpleSyncClient.class \
