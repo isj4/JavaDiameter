@@ -148,7 +148,7 @@ public class Node {
 					case connected_out:
 						logger.log(Level.FINE,"Closing connection to "+conn.host_id+" because we are shutting down");
 						it.remove();
-						conn.close();
+						conn.node_impl.closeConnection(conn);
 						break;
 					case tls:
 						break; //don't know what to do here yet.

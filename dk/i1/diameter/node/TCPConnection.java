@@ -38,12 +38,6 @@ class TCPConnection extends Connection {
 		connection_buffers.processAppOutBuffer();
 	}
 	
-	void close() {
-		try {
-			channel.close();
-		} catch(java.io.IOException ex) {}
-	}
-	
 	InetAddress toInetAddress() {
 		return ((InetSocketAddress)(channel.socket().getRemoteSocketAddress())).getAddress();
 	}

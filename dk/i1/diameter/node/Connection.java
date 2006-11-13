@@ -33,8 +33,6 @@ abstract class Connection {
 		return hop_by_hop_identifier_seq++;
 	}
 	
-	abstract void close();
-	
 	abstract InetAddress toInetAddress(); //todo: eliminate
 	
 	abstract void sendMessage(byte[] raw);
