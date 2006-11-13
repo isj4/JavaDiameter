@@ -419,6 +419,7 @@ public class Node {
 		return default_setting;
 	}
 	
+	@SuppressWarnings("unchecked")
 	private NodeImplementation instantiateNodeImplementation(Level loglevel, String class_name) {
 		Class our_cls = this.getClass();
 		ClassLoader cls_ldr = our_cls.getClassLoader();
@@ -542,7 +543,7 @@ public class Node {
 	void logRawDecodedPacket(byte[] raw, int offset, int msg_size) {
 		hexDump(Level.FINEST,"Raw packet decoded",raw,offset,msg_size);
 	}
-	/**Logs an incorrectly decoded (non-diameter-)message*/
+	/**Logs an incorrectly decoded (non-diameter-)message.*/
 	void logGarbagePacket(Connection conn, byte[] raw, int offset, int msg_size) {
 		hexDump(Level.WARNING,"Garbage from "+conn.host_id,raw,offset,msg_size);
 	}
