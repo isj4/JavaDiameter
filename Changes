@@ -1,3 +1,6 @@
+Changes 0.9.4 -> 0.9.4.1
+* M-bit was not set on AVPs inside Vendor-Specific-Application-Id
+
 Changes 0.9.3 -> 0.9.4
 * Examines reuslt-code in CEA and acts on it.
 * Error-bit was not set in error responses for protocol errors.
