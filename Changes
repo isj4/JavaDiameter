@@ -1,5 +1,9 @@
-Changes 0.9.4 -> 
+Changes 0.9.4 -> 0.9.5
+* SCTP support
 * CER election phase could easily fail.
+
+Changes 0.9.4 -> 0.9.4.1
+* M-bit was not set on AVPs inside Vendor-Specific-Application-Id
 
 Changes 0.9.3 -> 0.9.4
 * Examines result-code in CEA and acts on it.
