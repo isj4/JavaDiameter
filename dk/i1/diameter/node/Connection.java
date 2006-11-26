@@ -42,4 +42,8 @@ abstract class Connection {
 	abstract Collection<InetAddress> getLocalAddresses();
 	
 	abstract Peer toPeer();
+	
+	long watchdogInterval() {
+		return timers.cfg_watchdog_timer;
+	}
 }

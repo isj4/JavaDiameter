@@ -7,7 +7,7 @@ import dk.i1.diameter.Message;
  * This class acts a a common superclass for the TCPNode and SCTPNode classes.
  */
 abstract class NodeImplementation {
-	Node node;
+	private Node node;
 	protected NodeSettings settings;
 	protected Logger logger;
 	NodeImplementation(Node node, NodeSettings settings, Logger logger) {
@@ -21,7 +21,6 @@ abstract class NodeImplementation {
 	abstract void initiateStop(long shutdown_deadline);
 	abstract void join();
 	abstract void closeIO();
-	abstract void outputBecameAvailable(Connection conn);
 	abstract boolean initiateConnection(Connection conn, Peer peer);
 	abstract void close(Connection conn, boolean reset);
 	abstract Connection newConnection(long watchdog_interval, long idle_timeout);

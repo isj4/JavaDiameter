@@ -38,6 +38,7 @@ class TestSessionTest2 {
 		
 		Peer peers[] = new Peer[]{
 			new Peer(peer)
+			//new Peer(peer,3868,Peer.TransportProtocol.sctp)
 		};
 		
 		

@@ -289,7 +289,19 @@ class TCPNode extends NodeImplementation {
 		}
 	}
 	
-	void outputBecameAvailable(Connection conn_) {
+	void sendMessage(TCPConnection conn, byte[] raw) {
+		boolean was_empty = !conn.hasNetOutput();
+		conn.makeSpaceInAppOutBuffer(raw.length);
+		//System.out.println("sendMessage: A: position=" + out_buffer.position() + " limit=" + conn.out_buffer.limit());
+		conn.connection_buffers.appOutBuffer().put(raw);
+		conn.connection_buffers.processAppOutBuffer();
+		//System.out.println("sendMessage: B: position=" + out_buffer.position() + " limit=" + conn.out_buffer.limit());
+		
+		if(was_empty)
+			outputBecameAvailable(conn);
+	}
+	
+	private void outputBecameAvailable(Connection conn_) {
 		TCPConnection conn = (TCPConnection)conn_;
 		handleWritable(conn);
 		if(conn.hasNetOutput()) {

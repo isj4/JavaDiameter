@@ -2,7 +2,7 @@
 
 .java.class:
 #	javac -g -cp .:examples $<
-	javac -cp .:examples $<
+	javac -cp .:examples:../JavaSCTP/JavaSCTP.jar $<
 
 P=dk/i1/diameter
 CLASSES=$P/packunpack.class \
@@ -52,6 +52,9 @@ CLASSES=$P/packunpack.class \
         $P/node/NodeImplementation.class \
         $P/node/TCPConnection.class \
         $P/node/TCPNode.class \
+        $P/node/RelevantSCTPAuthInfo.class \
+        $P/node/SCTPConnection.class \
+        $P/node/SCTPNode.class \
         $P/node/UnsupportedTransportProtocolException.class \
         $P/node/Node.class \
         $P/node/NodeManager.class \
@@ -89,6 +92,7 @@ clean:
 doc:
 	javadoc -sourcetab 8 \
 	        -d ./doc \
+	        -classpath ../JavaSCTP/JavaSCTP.jar:. \
 	        -windowtitle "Java Diameter API" \
 	        -notimestamp \
 	        -stylesheetfile stylesheet.css \

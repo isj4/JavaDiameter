@@ -25,6 +25,8 @@ import java.lang.reflect.Constructor;
  * <li><tt>dk.i1.diameter.node.use_sctp=</tt> [<tt><em>true</em></tt>|<tt><em>false</em></tt>|<tt><em>maybe</em></tt>] (default:maybe)</li>
  * </ul>
  * If a setting is set to true and the support class could not be loaded, then start operation fails.
+ * If a setting is false, then no attempt will be made to use that transport-protocol.
+ * If a setting is 'maybe' then the stack will try to initialize and use that trasnport-protocol, but failure to do so will not cause the stack initialization to fail.
  * You can override the properties by changing the setting with {@link NodeSettings#setUseTCP} and {@link NodeSettings#setUseSCTP}.
  * @see NodeManager
  */
@@ -286,6 +288,10 @@ public class Node {
 	}
 	/**
 	 * Returns the IP-address of the remote end of a connection.
+	 * Note: for connections using the SCTP transport protocol the returned
+	 * IP-address will be one of the ppers IP-addresses but it is
+	 * unspecified which one. In this case it is better to use
+	 * connectionKey2Peer()
 	 */
 	public InetAddress connectionKey2InetAddress(ConnectionKey connkey) {
 		synchronized(map_key_conn) {
@@ -434,7 +440,13 @@ public class Node {
 			                        	  logger.getClass()
 			                        	 );
 			} catch(java.lang.NoSuchMethodException ex) {
-				logger.log(Level.WARNING,"Could not find constructor for "+class_name,ex);
+				logger.log(loglevel,"Could not find constructor for "+class_name,ex);
+				return null;
+			} catch(java.lang.NoClassDefFoundError ex) {
+				logger.log(loglevel,"Could not find constructor for "+class_name,ex);
+				return null;
+			} catch(java.lang.UnsatisfiedLinkError ex) {
+				logger.log(loglevel,"Could not find constructor for "+class_name,ex);
 				return null;
 			}
 			if(ctor==null) return null;
@@ -446,6 +458,9 @@ public class Node {
 			} catch(java.lang.IllegalAccessException ex) {
 				return null;
 			} catch(java.lang.reflect.InvocationTargetException ex) {
+				return null;
+			} catch(java.lang.UnsatisfiedLinkError ex) {
+				logger.log(loglevel,"Could not construct a "+class_name,ex);
 				return null;
 			}
 		} catch(ClassNotFoundException ex) {

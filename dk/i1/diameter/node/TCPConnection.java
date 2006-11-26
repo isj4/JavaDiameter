@@ -7,27 +7,29 @@ import java.util.Collection;
 import java.util.ArrayList;
 
 class TCPConnection extends Connection {
+	TCPNode node_impl;
 	SocketChannel channel;
 	ConnectionBuffers connection_buffers;
 	
-	public TCPConnection(NodeImplementation node_impl, long watchdog_interval, long idle_timeout) {
+	public TCPConnection(TCPNode node_impl, long watchdog_interval, long idle_timeout) {
 		super(node_impl,watchdog_interval,idle_timeout);
+		this.node_impl = node_impl;
 		connection_buffers = new NormalConnectionBuffers();
 	}
 	
-	public void makeSpaceInNetInBuffer() {
+	void makeSpaceInNetInBuffer() {
 		connection_buffers.makeSpaceInNetInBuffer();
 	}
-	public void makeSpaceInAppOutBuffer(int how_much) {
+	void makeSpaceInAppOutBuffer(int how_much) {
 		connection_buffers.makeSpaceInAppOutBuffer(how_much);
 	}
-	public void consumeAppInBuffer(int bytes) {
+	void consumeAppInBuffer(int bytes) {
 		connection_buffers.consumeAppInBuffer(bytes);
 	}
-	public void consumeNetOutBuffer(int bytes) {
+	void consumeNetOutBuffer(int bytes) {
 		connection_buffers.consumeNetOutBuffer(bytes);
 	}
-	public boolean hasNetOutput() {
+	boolean hasNetOutput() {
 		return connection_buffers.netOutBuffer().position()!=0;
 	}
 	
@@ -43,15 +45,7 @@ class TCPConnection extends Connection {
 	}
 	
 	void sendMessage(byte[] raw) {
-		boolean was_empty = !hasNetOutput();
-		makeSpaceInAppOutBuffer(raw.length);
-		//System.out.println("sendMessage: A: position=" + out_buffer.position() + " limit=" + conn.out_buffer.limit());
-		connection_buffers.appOutBuffer().put(raw);
-		connection_buffers.processAppOutBuffer();
-		//System.out.println("sendMessage: B: position=" + out_buffer.position() + " limit=" + conn.out_buffer.limit());
-		
-		if(was_empty)
-			node_impl.outputBecameAvailable(this);
+		node_impl.sendMessage(this,raw);
 	}
 	
 	Object getRelevantNodeAuthInfo() {

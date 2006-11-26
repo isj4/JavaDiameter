@@ -17,7 +17,7 @@ public interface NodeValidator {
 		public boolean known;
 		/** If not known, which Error-Message should be included in the reject message? (can be null) */
 		public String error_message;
-		/** If not known, what should hte Result-Code be? (Node instance defaults to 3010) */
+		/** If not known, what should the Result-Code be? (Node instance defaults to 3010) */
 		public Integer result_code;
 	};
 	/** Verify that we know the node.
@@ -26,13 +26,14 @@ public interface NodeValidator {
 	 * telling the node if we know the peer, and if not what the
 	 * result-code and error-message should be. (Node provides reasonable defaults).
 	 * @param host_id The orogin-host-id of the peer.
-	 * @param obj An object describing the transport connection. Currently always a socket channel.
+	 * @param obj An object describing the transport connection. For TCP transport connections this is a socket channel. For SCTP transport connections it is a {@link RelevantSCTPAuthInfo} instance.
 	 */
 	public AuthenticationResult authenticateNode(String host_id, Object obj);
 	/**
 	 * Calculate the capabilities that we allow the peer to have.
 	 * This method is called after the node has been authenticated.
 	 * Note: This method is also called for outbound connections.
+	 * If the resulting common capability is empty then the peer will be disconnected with Result-Code 5010 ("no common application")
 	 * @param host_id The origin-host-id of the peer.
 	 * @param settings The settings of the node (as passed to its constructor)
 	 * @param reported_capabilities The capability set the peer reported it supports.

@@ -1,0 +1,9 @@
+How to enable SCTP in the stack:
+
+1: Get the Java SCTP packet from http://i1.dk/JavaSCTP
+2: Make it
+3: (linux only) modprobe sctp
+4: Run your application with:
+     java ... -Djava.library.path=<directory where libdk_i1_sctp.so is> ...
+   Alternatively you can set te LD_LIBRARY_PATH environment variable before
+   starting your program.

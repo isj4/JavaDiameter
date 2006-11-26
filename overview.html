@@ -18,7 +18,7 @@ server then {@link dk.i1.diameter.node} is probably a good place to start.
 <h3>Some technical details</h3>
 <h4>RFC3588 compliance</h4>
 <p>
-In general, most of RFC3588 is supported. IPv4 and IPv6 is supported. TLS encryption is not supported (yet). TCP transport is supported. SCTP transport is not supported (Java does not have any support for SCTP yet).
+In general, most of RFC3588 is supported. IPv4 and IPv6 is supported. TLS encryption is not supported (yet). TCP transport is supported. SCTP transport is supported with the optional package <a href="http://i1.dk/JavaSCTP">Java SCTP</a>.
 <h4>Performance</h4>
 <p>
 The performance is quite good and measured in thousands of messages per second. Your application and hardware will differ, and the best you can do is to run the load test located in examples/load.
