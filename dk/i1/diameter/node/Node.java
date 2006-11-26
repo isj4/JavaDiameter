@@ -289,7 +289,7 @@ public class Node {
 	/**
 	 * Returns the IP-address of the remote end of a connection.
 	 * Note: for connections using the SCTP transport protocol the returned
-	 * IP-address will be one of the ppers IP-addresses but it is
+	 * IP-address will be one of the peer's IP-addresses but it is
 	 * unspecified which one. In this case it is better to use
 	 * connectionKey2Peer()
 	 */
