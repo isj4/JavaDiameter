@@ -78,7 +78,7 @@ class cc_test_client {
 		//  [ Termination-Cause ]
 		//  [ Requested-Service-Unit ]
 		ccr.add(new AVP_Grouped(ProtocolConstants.DI_REQUESTED_SERVICE_UNIT,
-		                        new AVP[] {new AVP_Unsigned64(ProtocolConstants.DI_CC_SERVICE_SPECIFIC_UNITS,42).setM()}
+		                        new AVP[] {new AVP_Unsigned64(ProtocolConstants.DI_CC_SERVICE_SPECIFIC_UNITS,42)}
 		                       )
 		       );
 		//  [ Requested-Action ]

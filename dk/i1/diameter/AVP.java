@@ -230,4 +230,14 @@ public class AVP {
 		flags |= avp_flag_mandatory;
 		return this;
 	}
+	
+	/**Replace the content (and codes etc.) with the specified AVP.
+	 *@since 0.9.5
+	 */
+	void inline_shallow_replace(AVP a) {
+		payload = a.payload;
+		code = a.code;
+		flags = a.flags;
+		vendor_id = a.vendor_id;
+	}
 }

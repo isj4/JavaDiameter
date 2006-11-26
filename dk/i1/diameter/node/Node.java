@@ -1106,14 +1106,14 @@ public class Node {
 		//Vendor-Specific-Application-Id
 		for(Capability.VendorApplication va : capabilities.auth_vendor) {
 			AVP g[] = new AVP[2];
-			g[0] = new AVP_Unsigned32(ProtocolConstants.DI_VENDOR_ID,va.vendor_id).setM();
-			g[1] = new AVP_Unsigned32(ProtocolConstants.DI_AUTH_APPLICATION_ID,va.application_id).setM();
+			g[0] = new AVP_Unsigned32(ProtocolConstants.DI_VENDOR_ID,va.vendor_id);
+			g[1] = new AVP_Unsigned32(ProtocolConstants.DI_AUTH_APPLICATION_ID,va.application_id);
 			msg.add(new AVP_Grouped(ProtocolConstants.DI_VENDOR_SPECIFIC_APPLICATION_ID,g));
 		}
 		for(Capability.VendorApplication va : capabilities.acct_vendor) {
 			AVP g[] = new AVP[2];
-			g[0] = new AVP_Unsigned32(ProtocolConstants.DI_VENDOR_ID,va.vendor_id).setM();
-			g[1] = new AVP_Unsigned32(ProtocolConstants.DI_ACCT_APPLICATION_ID,va.application_id).setM();
+			g[0] = new AVP_Unsigned32(ProtocolConstants.DI_VENDOR_ID,va.vendor_id);
+			g[1] = new AVP_Unsigned32(ProtocolConstants.DI_ACCT_APPLICATION_ID,va.application_id);
 			msg.add(new AVP_Grouped(ProtocolConstants.DI_VENDOR_SPECIFIC_APPLICATION_ID,g));
 		}
 		//Firmware-Revision

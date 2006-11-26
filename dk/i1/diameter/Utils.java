@@ -6,6 +6,61 @@ import java.util.*;
  */
 final public class Utils {
 	private Utils() {} //stop javadoc from listing this.
+	
+	private static final boolean contains(int[] a, int x) {
+		for(int i : a)
+			if(i==x)
+				return true;
+		return false;
+	}
+	private static final int empty_array[] = {};
+	
+	private static final boolean setMandatory(AVP a, int codes[], int grouped_avp_codes[]) {
+		boolean modified = false;
+		if(a.vendor_id==0 && contains(grouped_avp_codes,a.code)) {
+			try {
+				AVP_Grouped avp_g = new AVP_Grouped(a);
+				AVP[] avp_g_avps = avp_g.queryAVPs();
+				for(AVP avp_g_avp : avp_g_avps)
+					modified = setMandatory(avp_g_avp,codes,grouped_avp_codes) || modified;
+				boolean any_mandatory=false;
+				for(AVP avp_g_avp : avp_g_avps)
+					any_mandatory = any_mandatory || avp_g_avp.isMandatory();
+				if(any_mandatory && !a.isMandatory()) {
+					avp_g.setMandatory(true);
+					modified = true;
+				}
+				if(modified) {
+					avp_g.setAVPs(avp_g_avps);
+					a.inline_shallow_replace(avp_g);
+				}
+			} catch(InvalidAVPLengthException ex) {
+				//obviously not grouped - ignored
+			}
+		}
+		if(!a.isMandatory()) {
+			if(a.vendor_id==0 && contains(codes,a.code)) {
+				a.setMandatory(true);
+				modified = true;
+			}
+		}
+		return modified;
+	}
+	
+	/**
+	 * Sets the M-bit on the avps with the specified codes.
+	 * Vendor-specific AVPs are not modified.
+	 * AVPs not listed are not modified.
+	 * @param avps The AVPs to examine and possibly set the M-bit on.
+	 * @param codes Array of codes
+	 * @param grouped_avp_codes Array of AVP codes for AVPs that are grouped and should be examined deeper for other mandatory AVPs
+	 * @since 0.9.5
+	 */
+	public static final void setMandatory(Iterable<AVP> avps, int codes[], int grouped_avp_codes[]) {
+		for(AVP a : avps) {
+			setMandatory(a,codes,grouped_avp_codes);
+		}
+	}
 	/**
 	 * Sets the M-bit on the avps with the specified codes.
 	 * Vendor-specific AVPs are not modified.
@@ -14,14 +69,7 @@ final public class Utils {
 	 * @param codes Array of codes
 	 */
 	public static final void setMandatory(Iterable<AVP> avps, int codes[]) {
-		for(AVP a : avps) {
-			for(int c : codes) {
-				if(a.code==c && a.vendor_id==0) {
-					a.setMandatory(true);
-					break;
-				}
-			}
-		}
+		setMandatory(avps,codes,empty_array);
 	}
 	/**
 	 * Sets the M-bit on the avps with the specified codes.
@@ -43,7 +91,17 @@ final public class Utils {
 	 * @param codes Array of codes
 	 */
 	public static final void setMandatory(Message msg, int codes[]) {
-		setMandatory(msg.avps(),codes);
+		setMandatory(msg.avps(),codes,empty_array);
+	}
+	/**
+	 * Sets the M-bit on the avps with the specified codes.
+	 * @param msg The message AVPs to examine and possibly set the M-bit on.
+	 * @param codes Array of codes
+	 * @param grouped_avp_codes Array of AVP codes for AVPs that are grouped and should be examined deeper for other mandatory AVPs
+	 * @since 0.9.5
+	 */
+	public static final void setMandatory(Message msg, int codes[], int grouped_avp_codes[]) {
+		setMandatory(msg.avps(),codes,grouped_avp_codes);
 	}
 	
 	/**The AVP codes of the AVPs listen in RFC3588 section 4.5 that must be mandatory*/
@@ -95,14 +153,28 @@ final public class Utils {
 		ProtocolConstants.DI_VENDOR_ID,
 		ProtocolConstants.DI_VENDOR_SPECIFIC_APPLICATION_ID
 	};
-
-	/**Sets the M-bit on the AVPs that should have the M bit set according to RFC3588*/
+	/**List of AVPs that are grouped according to RFC3588 section 4.5
+	 *@since 0.9.5
+	 */
+	public static final int rfc3588_grouped_avps[]={
+		ProtocolConstants.DI_E2E_SEQUENCE_AVP,
+		ProtocolConstants.DI_EXPERIMENTAL_RESULT,
+		ProtocolConstants.DI_FAILED_AVP,
+		ProtocolConstants.DI_PROXY_INFO,
+		ProtocolConstants.DI_VENDOR_SPECIFIC_APPLICATION_ID
+	};
+	
+	/**Sets the M-bit on the AVPs that should have the M bit set according to RFC3588
+	 * <p>New behaviour since 0.9.5: Also traverses grouped AVPs mentied in rfc4006 and handles the M-bit properly.
+	 */
 	public static final void setMandatory_RFC3588(Iterable<AVP> avps) {
-		setMandatory(avps,rfc3588_mandatory_codes);
+		setMandatory(avps,rfc3588_mandatory_codes,rfc3588_grouped_avps);
 	}
-	/**Sets the M-bit on the AVPs that should have the M bit set according to RFC3588*/
+	/**Sets the M-bit on the AVPs that should have the M bit set according to RFC3588
+	 * <p>New behaviour since 0.9.5: Also traverses grouped AVPs mentied in rfc4006 and handles the M-bit properly.
+	 */
 	public static final void setMandatory_RFC3588(Message msg) {
-		setMandatory(msg.avps(),rfc3588_mandatory_codes);
+		setMandatory(msg.avps(),rfc3588_mandatory_codes,rfc3588_grouped_avps);
 	}
 	
 	/**The AVP codes of the AVPs listen in RFC4006 section 8 that must be mandatory*/
@@ -152,18 +224,38 @@ final public class Utils {
 		ProtocolConstants.DI_VALUE_DIGITS,
 		ProtocolConstants.DI_VALIDITY_TIME,
 	};
+	/**List of AVPs that are grouped according to RFC4006 section 8
+	 * @since 0.9.5
+	 */
+	public static final int rfc4006_grouped_avps[]={
+		ProtocolConstants.DI_CC_MONEY,
+		ProtocolConstants.DI_COST_INFORMATION,
+		ProtocolConstants.DI_FINAL_UNIT_INDICATION,
+		ProtocolConstants.DI_GRANTED_SERVICE_UNIT,
+		ProtocolConstants.DI_G_S_U_POOL_REFERENCE,
+		ProtocolConstants.DI_MULTIPLE_SERVICES_CREDIT_CONTROL,
+		ProtocolConstants.DI_REDIRECT_SERVER,
+		ProtocolConstants.DI_REQUESTED_SERVICE_UNIT,
+		ProtocolConstants.DI_SERVICE_PARAMETER_INFO,
+		ProtocolConstants.DI_SUBSCRIPTION_ID,
+		ProtocolConstants.DI_UNIT_VALUE,
+		ProtocolConstants.DI_USED_SERVICE_UNIT,
+		ProtocolConstants.DI_USER_EQUIPMENT_INFO
+	};
 	
 	/**Sets the M-bit on the AVPs that must have the M bit set according to RFC4006
+	 * <p>New behaviour since 0.9.5: Also traverses grouped AVPs mentied in rfc4006 and handles the M-bit properly.
 	 * @since 0.9.2
 	 */
 	public static final void setMandatory_RFC4006(Iterable<AVP> avps) {
-		setMandatory(avps,rfc4006_mandatory_codes);
+		setMandatory(avps,rfc4006_mandatory_codes,rfc4006_grouped_avps);
 	}
 	/**Sets the M-bit on the AVPs that must have the M bit set according to RFC4006
+	 * <p>New behaviour since 0.9.5: Also traverses grouped AVPs mentied in rfc4006 and handles the M-bit properly.
 	 * @since 0.9.2
 	 */
 	public static final void setMandatory_RFC4006(Message msg) {
-		setMandatory(msg.avps(),rfc4006_mandatory_codes);
+		setMandatory(msg.avps(),rfc4006_mandatory_codes,rfc4006_grouped_avps);
 	}
 	
 	/**
