@@ -140,6 +140,7 @@ public class Peer {
 		port = uri.getPort();
 		if(port==-1) port=3868;
 		secure = uri.getScheme().equals("aaas");
+		transport_protocol = TransportProtocol.tcp;
 	}
 	/** Copy constructor (deep copy)*/
 	public Peer(Peer p) {
@@ -148,7 +149,7 @@ public class Peer {
 		this.secure = p.secure;
 		if(p.capabilities!=null)
 			this.capabilities = new Capability(p.capabilities);
-		p.transport_protocol = p.transport_protocol;
+		transport_protocol = p.transport_protocol;
 
 	}
 	/**Capabilities of this peer*/
