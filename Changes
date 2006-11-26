@@ -1,6 +1,8 @@
 Changes 0.9.4 -> 0.9.5
 * SCTP support
 * CER election phase could easily fail.
+* Improved handling of M-bit in grouped AVPs in dk.i1.diameter.Utils
+* Implemented DW interval jitter as per rfc3539 section 3.4.1 item 1
 
 Changes 0.9.4 -> 0.9.4.1
 * M-bit was not set on AVPs inside Vendor-Specific-Application-Id

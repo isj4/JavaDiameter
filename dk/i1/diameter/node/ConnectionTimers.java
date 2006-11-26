@@ -10,7 +10,7 @@ class ConnectionTimers {
 	long watchdog_timer_with_jitter;
 	long cfg_idle_close_timeout;
 	
-	//Return -2000..+2000 as per rfc3530 section 3.4.1 item 1:
+	//Return -2000..+2000 as per rfc3539 section 3.4.1 item 1:
 	//
 	//In order to avoid synchronization behaviors that can occur with
 	//fixed timers among distributed systems, each time the watchdog
