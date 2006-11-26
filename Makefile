@@ -110,6 +110,7 @@ bindist: Diameter.jar
 	cd .. && tar cvfz $(BNAME)/$(BNAME)-jars.tar.gz \
 	    $(BNAME)/Diameter.jar \
 	    $(BNAME)/version $(BNAME)/LICENSE \
+	    $(BNAME)/README.sctp \
 	    $(BNAME)/README.bindist
 	rm -f ../$(BNAME)
 
