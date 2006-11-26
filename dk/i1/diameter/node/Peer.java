@@ -5,6 +5,10 @@ import java.util.StringTokenizer;
 /**
  * A Diameter peer.
  * Hmmmm. more documentation here...
+ * <p>
+ * Note: According to DIME WG (Diameter Maintanence and Extentions Working Group)
+ * the use of raw ip-address as host identities is non-compliant, so it is
+ * strongly encouraged to use fully-qualified domain names
  */
 public class Peer {
 	private String host;
@@ -21,6 +25,7 @@ public class Peer {
 	 * The address is set to the specified address, the port is set to 3868,
 	 * and the secure setting is off.
 	 * @param address The IP address of the peer.
+	 * @deprecated Use hostname instead of raw IP-address (preferably a FQDN)
 	 */
 	public Peer(InetAddress address) {
 		this(address,TransportProtocol.tcp);
@@ -32,6 +37,7 @@ public class Peer {
 	 * @param address The IP address of the peer.
 	 * @param transport_protocol TCP or SCTP
 	 * @since 0.9.5
+	 * @deprecated Use hostname instead of raw IP-address (preferably a FQDN)
 	 */
 	public Peer(InetAddress address, TransportProtocol transport_protocol) {
 		this(address,3868,transport_protocol);
@@ -42,6 +48,7 @@ public class Peer {
 	 * specified port, and the secure setting is off.
 	 * @param address The IP address of the peer.
 	 * @param port The port of the peer.
+	 * @deprecated Use hostname instead of raw IP-address (preferably a FQDN)
 	 */
 	public Peer(InetAddress address, int port) {
 		this(address,port,TransportProtocol.tcp);
@@ -54,6 +61,7 @@ public class Peer {
 	 * @param port The port of the peer.
 	 * @param transport_protocol TCP or SCTP
 	 * @since 0.9.5
+	 * @deprecated Use hostname instead of raw IP-address (preferably a FQDN)
 	 */
 	public Peer(InetAddress address, int port, TransportProtocol transport_protocol) {
 		this.host = address.getHostAddress();
@@ -105,6 +113,7 @@ public class Peer {
 	 * The address and port is set to the specifed socket address.
 	 * The secure setting is off.
 	 * @param address The socket address of the peer.
+	 * @deprecated Use hostname instead of raw IP-address (preferably a FQDN)
 	 */
 	public Peer(InetSocketAddress address) {
 		this.host = address.getAddress().getHostAddress();
