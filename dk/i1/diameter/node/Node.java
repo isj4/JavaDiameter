@@ -926,7 +926,7 @@ public class Node {
 		logger.log(Level.FINE,"CEA received from "+conn.host_id);
 		AVP avp = msg.find(ProtocolConstants.DI_RESULT_CODE);
 		if(avp==null) {
-			logger.log(Level.WARNING,"CEA from "+conn.host_id+" did not contain a Result-Code AV=P. Dropping connection");
+			logger.log(Level.WARNING,"CEA from "+conn.host_id+" did not contain a Result-Code AVP. Dropping connection");
 			return false;
 		}
 		int result_code;
