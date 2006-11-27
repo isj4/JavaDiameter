@@ -56,7 +56,7 @@ public class SessionManager extends NodeManager {
 	 * Start the session manager.
 	 * The SessionManager must be started before it can be used by sessions.
 	 */
-	public void start() throws java.io.IOException {
+	public void start() throws java.io.IOException, UnsupportedTransportProtocolException {
 		logger.log(Level.FINE,"Starting session manager");
 		super.start();
 		timer_thread = new TimerThread();
