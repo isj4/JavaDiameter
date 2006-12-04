@@ -1,3 +1,5 @@
+* Handle SCTP association restart correctly.
+
 Changes 0.9.4 -> 0.9.5
 * SCTP support
 * CER election phase could easily fail.

@@ -374,14 +374,63 @@ class SCTPNode extends NodeImplementation {
 							sctp_socket.disconnect(assoc_id);
 						} catch(java.net.SocketException ex) {}
 					}
+				} else if(sac.sac_state==SCTPNotificationAssociationChange.State.SCTP_RESTART) {
+					logger.log(Level.INFO,"Received sctp-restart notification on association "+assoc_id);
+					SCTPConnection conn = map.get(assoc_id);
+					if(conn!=null) {
+						//The association is already gone
+						conn.closed = true; //Make close() not doing the actual close because the assoc is already gone
+						//Notify the Node isntance
+						closeConnection(conn);
+					}
+					//Then open it again (maybe)
+					if(please_stop) {
+						//We don't want to add the connection if were are shutting down.
+						try {
+							sctp_socket.disconnect(assoc_id);
+						} catch(java.net.SocketException ex) {}
+						return;
+					}
+					InetAddress address = null;
+					Collection<InetAddress> coll_address = null;
+					int port;
+					try {
+						coll_address =  sctp_socket.getPeerInetAddresses(assoc_id);
+						for(InetAddress a:coll_address) {
+							address = a;
+							break;
+						}
+						port = sctp_socket.getPeerInetPort(assoc_id);
+					} catch(java.net.SocketException ex) {
+						logger.log(Level.WARNING,"Caught SocketException while retrieving SCTP peer address",ex);
+						try {
+							sctp_socket.disconnect(assoc_id,true);
+						} catch(java.net.SocketException ex2) {}
+						return;
+					}
+					logger.log(Level.INFO,"Got an restarted connection from " + address.toString()+" port "+assoc_id);
+					//Not one we initiated, so it is an inbound connection
+					conn = new SCTPConnection(SCTPNode.this,settings.watchdogInterval(),settings.idleTimeout());
+					conn.host_id = address.toString();
+					conn.state = Connection.State.connected_in;
+					conn.assoc_id = assoc_id;
+					conn.sac_inbound_streams = sac.sac_inbound_streams;
+					conn.sac_outbound_streams = sac.sac_outbound_streams;
+					map.put(assoc_id,conn);
+					registerInboundConnection(conn);
+					try {
+						//Set heartbeat to more that the device-watchdog interval
+						sctp_paddrparams spp = new sctp_paddrparams();
+						spp.spp_assoc_id = assoc_id;
+						spp.spp_flags = sctp_paddrparams.SPP_HB_ENABLE;
+						spp.spp_hbinterval = (int)conn.watchdogInterval()+1000;
+						sctp_socket.setPeerParameters(spp);
+					} catch(java.net.SocketException ex) {}
 				} else {
 					SCTPConnection conn = map.get(assoc_id);
 					switch(sac.sac_state) {
 						case SCTP_COMM_LOST:
 							logger.log(Level.INFO,"Received sctp-comm-lost notification on association "+assoc_id);
-							break;
-						case SCTP_RESTART:
-							logger.log(Level.INFO,"Received sctp-restart notification on association "+assoc_id);
 							break;
 						case SCTP_SHUTDOWN_COMP:
 							logger.log(Level.INFO,"Received sctp-shutdown-comp notification on association "+assoc_id);
