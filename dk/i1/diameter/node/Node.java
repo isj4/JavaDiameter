@@ -243,6 +243,8 @@ public class Node {
 	
 	/**
 	 * Returns the connection key for a peer.
+	 * Behaviour change since 0.9.6: Connections that are not in the "Open"
+	 * state (rfc3588 section 5.6) will not be returned.
 	 * @return The connection key. Null if there is no connection to the peer.
 	 */
 	public ConnectionKey findConnection(Peer peer)  {
@@ -252,6 +254,8 @@ public class Node {
 			for(Map.Entry<ConnectionKey,Connection> e : map_key_conn.entrySet()) {
 				Connection conn = e.getValue();
 				//System.out.println("Node.findConnection(): examing " + ((conn.peer!=null)?conn.peer.host():"?"));
+				if(conn.state!=Connection.State.ready)
+					continue;
 				if(conn.peer!=null
 				&& conn.peer.equals(peer)) {
 					//System.out.println("Node.findConnection(): found");
