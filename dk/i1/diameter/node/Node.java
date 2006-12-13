@@ -447,7 +447,11 @@ public class Node {
 				logger.log(loglevel,"Could not find constructor for "+class_name,ex);
 				return null;
 			} catch(java.lang.NoClassDefFoundError ex) {
-				logger.log(loglevel,"Could not find constructor for "+class_name,ex);
+				//This is the most common cause
+				if(loglevel!=Level.FINE)
+					logger.log(loglevel,"Could not find constructor for "+class_name,ex);
+				else //tone down the log message. Drop the stack frame.
+					logger.log(loglevel,"Could not find constructor for "+class_name);
 				return null;
 			} catch(java.lang.UnsatisfiedLinkError ex) {
 				logger.log(loglevel,"Could not find constructor for "+class_name,ex);
@@ -471,8 +475,6 @@ public class Node {
 			logger.log(loglevel,"class "+class_name+" not found/loaded",ex);
 			return null;
 		}
-		
-		
 	}
 	
 	private NodeImplementation loadTransportProtocol(Boolean setting, String setting_name, Boolean default_setting,
@@ -489,6 +491,7 @@ public class Node {
 			else if(b!=null)
 				throw new UnsupportedTransportProtocolException(short_name+" support could not be loaded");
 		}
+		logger.log(Level.INFO,short_name+" support was "+(node_impl!=null?"loaded":"not loaded"));
 		return node_impl;
 	}
 	private void prepare() throws java.io.IOException, UnsupportedTransportProtocolException {

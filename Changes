@@ -2,6 +2,8 @@
 * Node.findConnection() could return connection keys for connections there were
   not in the "open" state, potentially leading to NPE if a client immediately
   tried using it.
+* Logging in Node changed a bit to make failure to load SCTP support look less
+  dangerous.
 
 Changes 0.9.4 -> 0.9.5
 * SCTP support
