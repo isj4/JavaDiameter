@@ -4,6 +4,8 @@
   tried using it.
 * Logging in Node changed a bit to make failure to load SCTP support look less
   dangerous.
+* Do not attempt to send DWR on non-ready connections.
+* Timeout&close non-ready connections.
 
 Changes 0.9.4 -> 0.9.5
 * SCTP support

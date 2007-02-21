@@ -110,10 +110,12 @@ class ConnectionTimers {
 	public timer_action calcAction(boolean ready) {
 		long now = System.currentTimeMillis();
 
-		if(!ready &&
-		   now >= last_activity + cfg_watchdog_timer)
-		{
-			return timer_action.disconnect_no_cer;
+		if(!ready) {
+			if(now >= last_activity + watchdog_timer_with_jitter)
+			{
+				return timer_action.disconnect_no_cer;
+			}
+			return timer_action.none;
 		}
 		
 		if(cfg_idle_close_timeout!=0) {
