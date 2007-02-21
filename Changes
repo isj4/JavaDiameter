@@ -1,3 +1,4 @@
+Changes 0.9.5 -> 0.9.6
 * Handle SCTP association restart correctly.
 * Node.findConnection() could return connection keys for connections there were
   not in the "open" state, potentially leading to NPE if a client immediately
