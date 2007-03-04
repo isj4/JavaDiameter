@@ -25,7 +25,7 @@ class cc_test_server extends NodeManager {
 		
 		Capability capability = new Capability();
 		capability.addAuthApp(ProtocolConstants.DIAMETER_APPLICATION_CREDIT_CONTROL);
-		capability.addAcctApp(ProtocolConstants.DIAMETER_APPLICATION_CREDIT_CONTROL);
+		//capability.addAcctApp(ProtocolConstants.DIAMETER_APPLICATION_CREDIT_CONTROL);
 		
 		NodeSettings node_settings;
 		try {

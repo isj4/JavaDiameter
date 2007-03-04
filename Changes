@@ -1,6 +1,8 @@
 Changes 0.9.6 -> 0.9.6.1
 * File descriptor leak when a persistent peer had a name that could not be
   looked up in DNS.
+* DCC examples no longer announce credit-control application as a supported
+  accounting application.
 
 Changes 0.9.5 -> 0.9.6
 * Handle SCTP association restart correctly.
