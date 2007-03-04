@@ -320,6 +320,7 @@ class TCPNode extends NodeImplementation {
 			try {
 				channel.connect(address);
 			} catch(java.nio.channels.UnresolvedAddressException ex) {
+				channel.close();
 				return false;
 			}
 			conn.state = Connection.State.connecting;

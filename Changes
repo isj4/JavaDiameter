@@ -1,3 +1,7 @@
+Changes 0.9.6 -> 0.9.6.1
+* File descriptor leak when a persistent peer had a name that could not be
+  looked up in DNS.
+
 Changes 0.9.5 -> 0.9.6
 * Handle SCTP association restart correctly.
 * Node.findConnection() could return connection keys for connections there were
