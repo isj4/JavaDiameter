@@ -165,13 +165,13 @@ final public class Utils {
 	};
 	
 	/**Sets the M-bit on the AVPs that should have the M bit set according to RFC3588
-	 * <p>New behaviour since 0.9.5: Also traverses grouped AVPs mentied in rfc4006 and handles the M-bit properly.
+	 * <p>New behaviour since 0.9.5: Also traverses grouped AVPs mentioned in rfc4006 and handles the M-bit properly.
 	 */
 	public static final void setMandatory_RFC3588(Iterable<AVP> avps) {
 		setMandatory(avps,rfc3588_mandatory_codes,rfc3588_grouped_avps);
 	}
 	/**Sets the M-bit on the AVPs that should have the M bit set according to RFC3588
-	 * <p>New behaviour since 0.9.5: Also traverses grouped AVPs mentied in rfc4006 and handles the M-bit properly.
+	 * <p>New behaviour since 0.9.5: Also traverses grouped AVPs mentioned in rfc4006 and handles the M-bit properly.
 	 */
 	public static final void setMandatory_RFC3588(Message msg) {
 		setMandatory(msg.avps(),rfc3588_mandatory_codes,rfc3588_grouped_avps);
@@ -244,14 +244,14 @@ final public class Utils {
 	};
 	
 	/**Sets the M-bit on the AVPs that must have the M bit set according to RFC4006
-	 * <p>New behaviour since 0.9.5: Also traverses grouped AVPs mentied in rfc4006 and handles the M-bit properly.
+	 * <p>New behaviour since 0.9.5: Also traverses grouped AVPs mentioned in rfc4006 and handles the M-bit properly.
 	 * @since 0.9.2
 	 */
 	public static final void setMandatory_RFC4006(Iterable<AVP> avps) {
 		setMandatory(avps,rfc4006_mandatory_codes,rfc4006_grouped_avps);
 	}
 	/**Sets the M-bit on the AVPs that must have the M bit set according to RFC4006
-	 * <p>New behaviour since 0.9.5: Also traverses grouped AVPs mentied in rfc4006 and handles the M-bit properly.
+	 * <p>New behaviour since 0.9.5: Also traverses grouped AVPs mentioned in rfc4006 and handles the M-bit properly.
 	 * @since 0.9.2
 	 */
 	public static final void setMandatory_RFC4006(Message msg) {
