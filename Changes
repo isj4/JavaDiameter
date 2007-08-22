@@ -1,3 +1,7 @@
+Changes 0.9.6.1 -> 
+* I a peer accepted the connection, but never replied to CER, then a
+  ConcurrentModificationException was thrown when the connection timed out.
+
 Changes 0.9.6 -> 0.9.6.1
 * File descriptor leak when a persistent peer had a name that could not be
   looked up in DNS.

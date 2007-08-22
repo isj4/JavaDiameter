@@ -532,7 +532,11 @@ public class Node {
 	 */
 	void runTimers(NodeImplementation node_impl) {
 		synchronized(map_key_conn) {
-			for(Map.Entry<ConnectionKey,Connection> e : map_key_conn.entrySet()) {
+			for(Iterator<Map.Entry<ConnectionKey,Connection>> it = map_key_conn.entrySet().iterator();
+			    it.hasNext();
+			   )
+			{
+				Map.Entry<ConnectionKey,Connection> e = it.next();
 				Connection conn = e.getValue();
 				if(conn.node_impl!=node_impl) continue;
 				boolean ready = conn.state==Connection.State.ready;
@@ -541,15 +545,18 @@ public class Node {
 						break;
 					case disconnect_no_cer:
 						logger.log(Level.WARNING,"Disconnecting due to no CER/CEA");
+						it.remove();
 						closeConnection(conn);
 						break;
 					case disconnect_idle:
 						logger.log(Level.WARNING,"Disconnecting due to idle");
 						//busy is the closest thing to "no traffic for a long time. No point in keeping the connection"
+						it.remove();
 						initiateConnectionClose(conn,ProtocolConstants.DI_DISCONNECT_CAUSE_BUSY);
 						break;
 					case disconnect_no_dw:
 						logger.log(Level.WARNING,"Disconnecting due to no DWA");
+						it.remove();
 						closeConnection(conn);
 						break;
 					case dwr:
