@@ -318,7 +318,16 @@ class TCPNode extends NodeImplementation {
 			channel.configureBlocking(false);
 			InetSocketAddress address = new InetSocketAddress(peer.host(),peer.port());
 			try {
-				channel.connect(address);
+				if(channel.connect(address)) {
+					//This only happens on Solaris when connecting locally
+					logger.log(Level.FINEST,"Connected!");
+					conn.state = Connection.State.connected_out;
+					conn.channel = channel;
+					selector.wakeup();
+					channel.register(selector, SelectionKey.OP_READ, conn);
+					initiateCER(conn);
+					return true;
+				}
 			} catch(java.nio.channels.UnresolvedAddressException ex) {
 				channel.close();
 				return false;
