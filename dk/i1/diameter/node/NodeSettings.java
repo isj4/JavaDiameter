@@ -4,7 +4,7 @@ import java.util.Random;
 /**
  * Configuration for a node.
  * NodeSettings contain the settings for a node including node ID, capabilities, etc.
- * A NodeSettings instance is require for initializing {@link Node} and {@link NodeManager}
+ * A NodeSettings instance is required for initializing {@link Node} and {@link NodeManager}
  * <p>Example for constructing a NodeSettings instance:
  * <pre>
  *  Capability capability = new Capability();
