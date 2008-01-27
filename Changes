@@ -1,3 +1,14 @@
+Changes 0.9.6.3 -> 0.9.6.4
+* Fix regression in 0.9.6.3:
+  - ConcurrentModificationException when talking to silent peer
+  - Bugfix when connect() connects imediately. (solaris)
+  Both regressions were due to my fat fingers and subversion happily
+  accepting changes to tags.
+
+Changes 0.9.6.? -> 0.9.6.3
+* Made more robust when calling Node.findConnection/sendMessage/... when the
+  node has not been started.
+
 Changes 0.9.6.1 -> 0.9.6.2
 * If a peer accepted the connection, but never replied to CER, then a
   ConcurrentModificationException was thrown when the connection timed out.

@@ -135,6 +135,10 @@ public class Node {
 			tcp_node.initiateStop(shutdown_deadline);
 		if(sctp_node!=null)
 			sctp_node.initiateStop(shutdown_deadline);
+		if(map_key_conn==null) {
+			logger.log(Level.INFO,"Cannot stop node: It appears to not be running. (This is the fault of the caller)");
+			return;
+		}
 		synchronized(map_key_conn) {
 			please_stop = true;
 			//Close all the non-ready connections, initiate close on ready ones.
@@ -201,6 +205,8 @@ public class Node {
 	}
 	
 	private boolean anyReadyConnection() {
+		if(map_key_conn==null)
+			return false;
 		synchronized(map_key_conn) {
 			for(Map.Entry<ConnectionKey,Connection> e : map_key_conn.entrySet()) {
 				Connection conn = e.getValue();
@@ -249,6 +255,10 @@ public class Node {
 	 */
 	public ConnectionKey findConnection(Peer peer)  {
 		logger.log(Level.FINER,"Finding '" + peer.host() +"'");
+		if(map_key_conn==null) {
+			logger.log(Level.FINER,peer.host()+" NOT found (node is not ready)");
+			return null;
+		}
 		synchronized(map_key_conn) {
 			//System.out.println("Node.findConnection: size=" + map_key_conn.size());
 			for(Map.Entry<ConnectionKey,Connection> e : map_key_conn.entrySet()) {
@@ -274,6 +284,8 @@ public class Node {
 	 * exception if the connection has gone stale.
 	 */
 	public boolean isConnectionKeyValid(ConnectionKey connkey) {
+		if(map_key_conn==null)
+			return false;
 		synchronized(map_key_conn) {
 			return map_key_conn.get(connkey)!=null;
 		}
@@ -282,6 +294,8 @@ public class Node {
 	 * Returns the Peer on a connection.
 	 */
 	public Peer connectionKey2Peer(ConnectionKey connkey) {
+		if(map_key_conn==null)
+			return null;
 		synchronized(map_key_conn) {
 			Connection conn = map_key_conn.get(connkey);
 			if(conn!=null)
@@ -298,6 +312,8 @@ public class Node {
 	 * connectionKey2Peer()
 	 */
 	public InetAddress connectionKey2InetAddress(ConnectionKey connkey) {
+		if(map_key_conn==null)
+			return null;
 		synchronized(map_key_conn) {
 			Connection conn = map_key_conn.get(connkey);
 			if(conn!=null)
@@ -310,6 +326,8 @@ public class Node {
 	 * Returns the next hop-by-hop identifier for a connection
 	 */
 	public int nextHopByHopIdentifier(ConnectionKey connkey) throws StaleConnectionException {
+		if(map_key_conn==null)
+			throw new StaleConnectionException();
 		synchronized(map_key_conn) {
 			Connection conn = map_key_conn.get(connkey);
 			if(conn==null)
@@ -324,6 +342,8 @@ public class Node {
 	 * @param connkey The connection to use. If the connection has been closed in the meantime StaleConnectionException is thrown.
 	 */
 	public void sendMessage(Message msg, ConnectionKey connkey) throws StaleConnectionException {
+		if(map_key_conn==null)
+			throw new StaleConnectionException();
 		synchronized(map_key_conn) {
 			Connection conn = map_key_conn.get(connkey);
 			if(conn==null)
