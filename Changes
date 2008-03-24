@@ -3,6 +3,7 @@ Changes 0.9.6.4 ->
   was null.
 * Node.waitForConnectionTimeout() and NodeManager.waitForConnectionTimeout()
   methods added.
+* Handle more than 2^31 sessions connectly when generating Session-IDs
 
 Changes 0.9.6.3 -> 0.9.6.4
 * Fix regression in 0.9.6.3:
