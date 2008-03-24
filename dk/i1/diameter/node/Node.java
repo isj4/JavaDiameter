@@ -977,7 +977,7 @@ public class Node {
 		logger.log(Level.FINE,"CEA received from "+conn.host_id);
 		AVP avp = msg.find(ProtocolConstants.DI_RESULT_CODE);
 		if(avp==null) {
-			logger.log(Level.WARNING,"CEA from "+conn.host_id+" did not contain a Result-Code AVP. Dropping connection");
+			logger.log(Level.WARNING,"CEA from "+conn.host_id+" did not contain a Result-Code AVP (violation of RFC3588 section 5.3.2 page 61). Dropping connection");
 			return false;
 		}
 		int result_code;
@@ -993,11 +993,11 @@ public class Node {
 		}
 		avp = msg.find(ProtocolConstants.DI_ORIGIN_HOST);
 		if(avp==null) {
-			logger.log(Level.WARNING,"Peer did not include origin-host-id in CEA");
+			logger.log(Level.WARNING,"Peer did not include origin-host-id in CEA (violation of RFC3588 section 5.3.2 page 61). Dropping connection");
 			return false;
 		}
 		String host_id = new AVP_UTF8String(avp).queryValue();
-		logger.log(Level.FINER,"Node:Peer's origin-host-id is '"+host_id+"'");
+		logger.log(Level.FINER,"Node:Peer's origin-host-id is '"+host_id+"'. Expected: '"+conn.host_id+"'");
 		
 		conn.peer = conn.toPeer();
 		conn.peer.host(host_id);
