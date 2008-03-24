@@ -424,8 +424,10 @@ public class Node {
 				Connection conn = node_impl.newConnection(settings.watchdogInterval(),settings.idleTimeout());
 				conn.host_id = peer.host();
 				conn.peer = peer;
-				if(node_impl.initiateConnection(conn,peer))
+				if(node_impl.initiateConnection(conn,peer)) {
 					map_key_conn.put(conn.key,conn);
+					logger.log(Level.FINEST,"Initiated connection to ["+peer.toString()+"]");
+				}
 			}
 		}
 	}
