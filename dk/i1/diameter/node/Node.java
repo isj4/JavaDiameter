@@ -248,6 +248,21 @@ public class Node {
 	}
 	
 	/**
+	 * Wait until at least one connection has been established or until the timeout expires.
+	 * Waits until at least one connection to a peer has been established
+	 * and capability-exchange has finished, or the specified timeout has expired.
+	 * If the timeout expires then a ConnectionTimeoutException is thrown.
+	 * @param timeout The maximum time to wait in milliseconds.
+	 * @since 0.9.6.5
+	 * @throws ConnectionTimeoutException If the timeout expires without any connection established.
+	 */
+	public void waitForConnectionTimeout(long timeout) throws InterruptedException,ConnectionTimeoutException {
+		waitForConnection(timeout);
+		if(!anyReadyConnection())
+			throw new ConnectionTimeoutException("No connection was established within timeout ("+timeout+" milliseconds)");
+	}
+	
+	/**
 	 * Returns the connection key for a peer.
 	 * Behaviour change since 0.9.6: Connections that are not in the "Open"
 	 * state (rfc3588 section 5.6) will not be returned.

@@ -56,6 +56,7 @@ CLASSES=$P/packunpack.class \
         $P/node/SCTPConnection.class \
         $P/node/SCTPNode.class \
         $P/node/UnsupportedTransportProtocolException.class \
+        $P/node/ConnectionTimeoutException.class \
         $P/node/Node.class \
         $P/node/NodeManager.class \
         $P/node/SimpleSyncClient.class \
