@@ -354,14 +354,16 @@ public class NodeManager implements MessageDispatcher, ConnectionListener {
 			logger.log(Level.FINER,"Handling answer, hop_by_hop_identifier="+msg.hdr.hop_by_hop_identifier);
 			//locate state
 			Object state=null;
+			boolean found=false;
 			synchronized(req_map) {
 				Map<Integer,Object> e_c = req_map.get(connkey);
 				if(e_c!=null) {
 					state = e_c.get(msg.hdr.hop_by_hop_identifier);
 					e_c.remove(msg.hdr.hop_by_hop_identifier);
+					found = true;
 				}
 			}
-			if(state!=null) {
+			if(found) {
 				handleAnswer(msg,connkey,state);
 			} else {
 				logger.log(Level.FINER,"Answer did not match any outstanding request");

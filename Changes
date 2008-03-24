@@ -1,3 +1,7 @@
+Changes 0.9.6.4 -> 
+* NodeManager could not find matching oustanding requests if the state object
+  was null.
+
 Changes 0.9.6.3 -> 0.9.6.4
 * Fix regression in 0.9.6.3:
   - ConcurrentModificationException when talking to silent peer
