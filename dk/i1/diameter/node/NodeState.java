@@ -2,10 +2,10 @@ package dk.i1.diameter.node;
 import java.util.Random;
 
 class NodeState {
-	private int state_id;
+	private final int state_id;
 	private int end_to_end_identifier;
 	private int session_id_high;
-	private long session_id_low;
+	private long session_id_low; //long because we need 32 unsigned bits
 	
 	NodeState() {
 		int now = (int)(System.currentTimeMillis()/1000);
