@@ -98,6 +98,7 @@ doc:
 	        -notimestamp \
 	        -stylesheetfile stylesheet.css \
 	        -overview overview.html \
+	        -noqualifier java.lang \
 	        dk.i1.diameter dk.i1.diameter.node dk.i1.diameter.session
 .PHONY: fixdoc
 fixdoc:
