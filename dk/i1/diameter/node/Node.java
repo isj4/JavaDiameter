@@ -751,6 +751,64 @@ public class Node {
 	}
 	
 	/**
+	 * A small class to ease parsing of vendor-specific-app
+	 */
+	private static class AVP_VendorSpecificApplicationId extends AVP_Grouped {
+		public AVP_VendorSpecificApplicationId(AVP a) throws InvalidAVPLengthException, InvalidAVPValueException {
+			super(a);
+			AVP g[] = queryAVPs();
+			if(g.length<2)
+				throw new InvalidAVPValueException(a);
+			boolean found_vendor_id = false;
+			boolean found_app_id = false;
+			for(AVP e : g) {
+				if(e.code==ProtocolConstants.DI_VENDOR_ID)
+					found_vendor_id = true;
+				else if(e.code==ProtocolConstants.DI_AUTH_APPLICATION_ID)
+					found_app_id = true;
+				else if(e.code==ProtocolConstants.DI_ACCT_APPLICATION_ID)
+					found_app_id = true;
+				//else: something non-compliant, but we are tolerant
+			}
+			if(!found_vendor_id || !found_app_id)
+				throw new InvalidAVPValueException(a);
+		}
+		public AVP_VendorSpecificApplicationId(int vendor_id, int auth_app_id, int acct_app_id) {
+			super(ProtocolConstants.DI_VENDOR_SPECIFIC_APPLICATION_ID);
+			AVP_Unsigned32 app_id_avp;
+			if(auth_app_id!=0)
+				app_id_avp = new AVP_Unsigned32(ProtocolConstants.DI_AUTH_APPLICATION_ID,auth_app_id);
+			else
+				app_id_avp = new AVP_Unsigned32(ProtocolConstants.DI_ACCT_APPLICATION_ID,acct_app_id);
+			setAVPs(new AVP[] {new AVP_Unsigned32(ProtocolConstants.DI_VENDOR_ID,vendor_id),
+			                   app_id_avp
+			                  }
+			       );
+		}
+		public int vendorId() throws InvalidAVPLengthException, InvalidAVPValueException {
+			for(AVP a : queryAVPs()) {
+				if(a.code==ProtocolConstants.DI_VENDOR_ID)
+					return new AVP_Unsigned32(a).queryValue();
+			}
+			throw new InvalidAVPValueException(this);
+		}
+		public Integer authAppId() throws InvalidAVPLengthException {
+			for(AVP a : queryAVPs()) {
+				if(a.code==ProtocolConstants.DI_AUTH_APPLICATION_ID)
+					return new AVP_Unsigned32(a).queryValue();
+			}
+			return null;
+		}
+		public Integer acctAppId() throws InvalidAVPLengthException {
+			for(AVP a : queryAVPs()) {
+				if(a.code==ProtocolConstants.DI_ACCT_APPLICATION_ID)
+					return new AVP_Unsigned32(a).queryValue();
+			}
+			return null;
+		}
+	}
+	
+	/**
 	 * Determine if a message is supported by a peer.
 	 * The auth-application-id, acct-application-id or
 	 * vendor-specific-application AVP is extracted and tested against the
@@ -778,23 +836,25 @@ public class Node {
 			}
 			avp = msg.find(ProtocolConstants.DI_VENDOR_SPECIFIC_APPLICATION_ID);
 			if(avp!=null) {
-				AVP g[] = new AVP_Grouped(avp).queryAVPs();
-				if(g.length==2 &&
-				   g[0].code==ProtocolConstants.DI_VENDOR_ID) {
-					int vendor_id = new AVP_Unsigned32(g[0]).queryValue();
-					int app = new AVP_Unsigned32(g[1]).queryValue();
-					if(logger.isLoggable(Level.FINE))
-						logger.log(Level.FINE,"vendor-id="+vendor_id+", app="+app);
-					if(g[1].code==ProtocolConstants.DI_AUTH_APPLICATION_ID)
-						return peer.capabilities.isAllowedAuthApp(vendor_id,app);
-					if(g[1].code==ProtocolConstants.DI_ACCT_APPLICATION_ID)
-						return peer.capabilities.isAllowedAcctApp(vendor_id,app);
+				AVP_VendorSpecificApplicationId vsai = new AVP_VendorSpecificApplicationId(avp);
+				int vendor_id = vsai.vendorId();
+				if(logger.isLoggable(Level.FINE)) {
+					if(vsai.authAppId()!=null)
+						logger.log(Level.FINE,"vendor-id="+vendor_id+", auth_app="+vsai.authAppId());
+					if(vsai.acctAppId()!=null)
+						logger.log(Level.FINE,"vendor-id="+vendor_id+", acct_app="+vsai.acctAppId());
 				}
+				if(vsai.authAppId()!=null)
+					return peer.capabilities.isAllowedAuthApp(vendor_id,vsai.authAppId());
+				if(vsai.acctAppId()!=null)
+					return peer.capabilities.isAllowedAcctApp(vendor_id,vsai.acctAppId());
 				return false;
 			}
 			logger.log(Level.WARNING,"No auth-app-id, acct-app-id nor vendor-app in packet");
 		} catch(InvalidAVPLengthException ex) {
 			logger.log(Level.INFO,"Encountered invalid AVP length while looking at application-id",ex);
+		} catch(InvalidAVPValueException ex) {
+			logger.log(Level.INFO,"Encountered invalid AVP value while looking at application-id",ex);
 		}
 		return false;
 	}
@@ -1038,19 +1098,12 @@ public class Node {
 					reported_capabilities.addAcctApp(app);
 			}
 			for(AVP a : msg.subset(ProtocolConstants.DI_VENDOR_SPECIFIC_APPLICATION_ID)) {
-				AVP_Grouped ag = new AVP_Grouped(a);
-				AVP g[] = ag.queryAVPs();
-				if(g.length>=2 && g[0].code==ProtocolConstants.DI_VENDOR_ID) {
-					int vendor_id = new AVP_Unsigned32(g[0]).queryValue();
-					int app = new AVP_Unsigned32(g[1]).queryValue();
-					if(g[1].code==ProtocolConstants.DI_AUTH_APPLICATION_ID) {
-						reported_capabilities.addVendorAuthApp(vendor_id,app);
-					} else if(g[1].code==ProtocolConstants.DI_ACCT_APPLICATION_ID) {
-						reported_capabilities.addVendorAcctApp(vendor_id,app);
-					} else
-						throw new InvalidAVPValueException(a);
-				} else
-					throw new InvalidAVPValueException(a);
+				AVP_VendorSpecificApplicationId vsai = new AVP_VendorSpecificApplicationId(a);
+				int vendor_id = vsai.vendorId();
+				if(vsai.authAppId()!=null)
+					reported_capabilities.addVendorAuthApp(vendor_id,vsai.authAppId());
+				if(vsai.acctAppId()!=null)
+					reported_capabilities.addVendorAcctApp(vendor_id,vsai.acctAppId());
 			}
 			
 			Capability result_capabilities = node_validator.authorizeNode(conn.host_id, settings, reported_capabilities);
@@ -1156,16 +1209,10 @@ public class Node {
 		}
 		//Vendor-Specific-Application-Id
 		for(Capability.VendorApplication va : capabilities.auth_vendor) {
-			AVP g[] = new AVP[2];
-			g[0] = new AVP_Unsigned32(ProtocolConstants.DI_VENDOR_ID,va.vendor_id);
-			g[1] = new AVP_Unsigned32(ProtocolConstants.DI_AUTH_APPLICATION_ID,va.application_id);
-			msg.add(new AVP_Grouped(ProtocolConstants.DI_VENDOR_SPECIFIC_APPLICATION_ID,g));
+			msg.add(new AVP_VendorSpecificApplicationId(va.vendor_id,va.application_id,0));
 		}
 		for(Capability.VendorApplication va : capabilities.acct_vendor) {
-			AVP g[] = new AVP[2];
-			g[0] = new AVP_Unsigned32(ProtocolConstants.DI_VENDOR_ID,va.vendor_id);
-			g[1] = new AVP_Unsigned32(ProtocolConstants.DI_ACCT_APPLICATION_ID,va.application_id);
-			msg.add(new AVP_Grouped(ProtocolConstants.DI_VENDOR_SPECIFIC_APPLICATION_ID,g));
+			msg.add(new AVP_VendorSpecificApplicationId(va.vendor_id,0,va.application_id));
 		}
 		//Firmware-Revision
 		if(settings.firmwareRevision()!=0)

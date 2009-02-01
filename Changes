@@ -4,6 +4,7 @@ Changes 0.9.6.4 ->
 * Node.waitForConnectionTimeout() and NodeManager.waitForConnectionTimeout()
   methods added.
 * Handle more than 2^31 sessions connectly when generating Session-IDs
+* Support some unusual vendor-specific-application-id AVP formats.
 
 Changes 0.9.6.3 -> 0.9.6.4
 * Fix regression in 0.9.6.3:
