@@ -103,7 +103,7 @@ public class Peer {
 	public Peer(String host, int port, TransportProtocol transport_protocol) throws EmptyHostNameException {
 		if(host.length()==0)
 			throw new EmptyHostNameException();
-		this.host = new String(host);
+		this.host = host;
 		this.port = port;
 		this.secure = false;
 		this.transport_protocol = transport_protocol;
@@ -144,7 +144,7 @@ public class Peer {
 	}
 	/** Copy constructor (deep copy)*/
 	public Peer(Peer p) {
-		this.host = new String(p.host);
+		this.host = p.host;
 		this.port = p.port;
 		this.secure = p.secure;
 		if(p.capabilities!=null)
@@ -246,7 +246,7 @@ public class Peer {
 		     + "://"
 		     + host
 		     + ":"
-		     + (new Integer(port)).toString()
+		     + (Integer.valueOf(port)).toString()
 		     + (transport_protocol==TransportProtocol.tcp?"":";transport=sctp")
 		     ;
 	}
@@ -256,6 +256,10 @@ public class Peer {
 	}
 	
 	public boolean equals(Object o) {
+		if(this==o)
+			return true;
+		if(o==null || o.getClass()!=this.getClass())
+			return false;
 		Peer p=(Peer)o;
 		return port==p.port &&
 		       host.equals(p.host);

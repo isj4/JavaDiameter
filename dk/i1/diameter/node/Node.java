@@ -622,7 +622,7 @@ public class Node {
 		StringBuffer sb = new StringBuffer(msg.length()+1+bytes*3+(bytes/16+1)*(6+3+5+1));
 		sb.append(msg+"\n");
 		for(int i=0; i<bytes; i+=16) {
-			sb.append(String.format("%04X ", new Integer(i)));
+			sb.append(String.format("%04X ", Integer.valueOf(i)));
 			for(int j=i; j<i+16; j++) {
 				if((j%4)==0)
 					sb.append(' ');

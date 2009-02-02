@@ -297,15 +297,11 @@ public class NodeManager implements MessageDispatcher, ConnectionListener {
 			if(e_c==null) throw new StaleConnectionException();
 			e_c.put(request.hdr.hop_by_hop_identifier,state);
 		}
-		try {
-			node.sendMessage(request,connkey);
-			logger.log(Level.FINER,"Request sent, command_code="+request.hdr.command_code+" hop_by_hop_identifier="+request.hdr.hop_by_hop_identifier);
-		} catch(StaleConnectionException e) {
-			synchronized(req_map) {
-				req_map.remove(request.hdr.hop_by_hop_identifier);
-			}
-			throw e;
-		}
+		node.sendMessage(request,connkey);
+		logger.log(Level.FINER,"Request sent, command_code="+request.hdr.command_code+" hop_by_hop_identifier="+request.hdr.hop_by_hop_identifier);
+		//note: if Node.sendMessage() throws StaleConnectionException
+		//then we should theoretically remove the registered request,
+		//but that is done by the ConnectionListener.handle() method.
 	}
 	/**
 	 * Sends a request.

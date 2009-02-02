@@ -18,5 +18,11 @@ public class ConnectionKey {
 		i=nextI();
 	}
 	public int hashCode() { return i; }
-	public boolean equals(Object o) { return ((ConnectionKey)o).i==i; }
+	public boolean equals(Object o) {
+		if(this==o)
+			return true;
+		if(o==null || o.getClass()!=this.getClass())
+			return false;
+		return ((ConnectionKey)o).i==i;
+	}
 }

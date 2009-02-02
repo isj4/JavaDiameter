@@ -55,6 +55,10 @@ public class Capability {
 			return vendor_id + application_id;
 		}
 		public boolean equals(Object obj) {
+			if(this==obj)
+				return true;
+			if(obj==null || obj.getClass()!=this.getClass())
+				return false;
 			return ((VendorApplication)obj).vendor_id == vendor_id &&
 			       ((VendorApplication)obj).application_id == application_id;
 		}

@@ -322,7 +322,10 @@ class SCTPNode extends NodeImplementation {
 						} catch(java.net.SocketException ex2) {}
 						return;
 					}
-					logger.log(Level.INFO,"Got an association connection from " + address.toString()+" port "+assoc_id);
+					if(address!=null)
+						logger.log(Level.INFO,"Got an association connection from " + address.toString()+" port "+port);
+					else
+						logger.log(Level.INFO,"Got an association connection from <unknown> port "+port);
 
 					SCTPConnection conn = null;
 					if(!outstanding_connections.isEmpty()) {
@@ -408,10 +411,13 @@ class SCTPNode extends NodeImplementation {
 						} catch(java.net.SocketException ex2) {}
 						return;
 					}
-					logger.log(Level.INFO,"Got an restarted connection from " + address.toString()+" port "+assoc_id);
+					if(address!=null)
+						logger.log(Level.INFO,"Got an restarted connection from " + address.toString()+" port "+port);
+					else
+						logger.log(Level.INFO,"Got an restarted connection from <unknown> port "+port);
 					//Not one we initiated, so it is an inbound connection
 					conn = new SCTPConnection(SCTPNode.this,settings.watchdogInterval(),settings.idleTimeout());
-					conn.host_id = address.toString();
+					conn.host_id = address!=null ? address.toString() : "<unknown>";
 					conn.state = Connection.State.connected_in;
 					conn.assoc_id = assoc_id;
 					conn.sac_inbound_streams = sac.sac_inbound_streams;
