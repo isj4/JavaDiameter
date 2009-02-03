@@ -34,5 +34,4 @@ class NormalConnectionBuffers extends ConnectionBuffers {
 	void makeSpaceInAppOutBuffer(int how_much) {
 		out_buffer = makeSpaceInBuffer(out_buffer,how_much);
 	}
-
 }
