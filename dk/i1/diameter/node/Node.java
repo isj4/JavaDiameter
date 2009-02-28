@@ -507,6 +507,9 @@ public class Node {
 			} catch(java.lang.UnsatisfiedLinkError ex) {
 				logger.log(loglevel,"Could not construct a "+class_name,ex);
 				return null;
+			} catch(java.lang.NoClassDefFoundError ex) {
+				//this exception was seen with ibm-java-ppc-60 JDK
+				return null;
 			}
 		} catch(ClassNotFoundException ex) {
 			logger.log(loglevel,"class "+class_name+" not found/loaded",ex);
