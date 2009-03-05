@@ -5,6 +5,8 @@ Changes 0.9.6.4 ->
   methods added.
 * Handle more than 2^31 sessions connectly when generating Session-IDs
 * Support some unusual vendor-specific-application-id AVP formats.
+* AVP_Time.queryDate() returned wrong value (Date object creation with seconds
+  instead of milliseconds)
 
 Changes 0.9.6.3 -> 0.9.6.4
 * Fix regression in 0.9.6.3:
