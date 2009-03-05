@@ -171,7 +171,13 @@ public class AVP {
 		return b;
 	}
 	
-	byte[] queryPayload() {
+	/** Returns the payload of the AVP
+	 * Returns a copy of the (unpadded) payload of the AVP in network byte
+	 * order. This is normally not what you want. The subclasses have much
+	 * nicer interfaces.
+	 * @since 0.9.6.5
+	 */
+	public byte[] queryPayload() {
 		byte tmp[] = new byte[payload.length];
 		System.arraycopy(payload,0, tmp,0, payload.length);
 		return tmp;
