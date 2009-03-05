@@ -1,4 +1,4 @@
-Changes 0.9.6.4 -> 
+Changes 0.9.6.4 -> 0.9.6.5
 * NodeManager could not find matching oustanding requests if the state object
   was null.
 * Node.waitForConnectionTimeout() and NodeManager.waitForConnectionTimeout()
