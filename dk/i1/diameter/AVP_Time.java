@@ -29,7 +29,7 @@ public class AVP_Time extends AVP_Unsigned32 {
 		super(code, vendor_id, seconds_since_1970+seconds_between_1900_and_1970);
 	}
 	public Date queryDate() {
-		return new Date((super.queryValue()-seconds_between_1900_and_1970)*1000);
+		return new Date((super.queryValue()-seconds_between_1900_and_1970)*1000L);
 	}
 	public int querySecondsSince1970() {
 		return super.queryValue()-seconds_between_1900_and_1970;
