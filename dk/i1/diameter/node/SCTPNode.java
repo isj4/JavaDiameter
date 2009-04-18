@@ -442,11 +442,13 @@ class SCTPNode extends NodeImplementation {
 							logger.log(Level.INFO,"Received sctp-shutdown-comp notification on association "+assoc_id);
 							break;
 						case SCTP_CANT_STR_ASSOC: {
+							logger.log(Level.INFO,"Received cant-strt-assoc notification on association "+assoc_id);
 							//And outstanding connect operatio failed.
 							OutstandingConnection oc = outstanding_connections.peek();
 							if(oc!=null) {
-								logger.log(Level.INFO,"Connection to "+oc.conn.host_id+" failed.");
-								outstanding_connections.remove();
+								logger.log(Level.INFO,"SCTP connection to "+oc.conn.host_id+" failed.");
+								outstanding_connections.removeFirst();
+								conn = oc.conn;
 							} else {
 								logger.log(Level.WARNING,"Got a cant-start-association association-change-event but no outstanding connect operation was found");
 							}
@@ -456,7 +458,7 @@ class SCTPNode extends NodeImplementation {
 					if(conn!=null) {
 						//The association is already gone
 						conn.closed = true; //Make close() not doing the actual close because the assoc is already gone
-						//Notify the Node isntance
+						//Notify the Node instance
 						closeConnection(conn);
 					}
 				}

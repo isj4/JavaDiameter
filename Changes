@@ -1,5 +1,6 @@
-Changes 0.9.6.6 -> 0.9.6.7
+Changes 0.9.6.6 -> 
 * Expanded CC example server
+* Fixed npe on outgoing sctp connections that fail
 
 Changes 0.9.6.5 -> 0.9.6.6
 * AVP_Time.queryDate() returned wrong values de to 32-bit arithmic.
