@@ -428,6 +428,8 @@ public class Node {
 					map_key_conn.put(conn.key,conn);
 					logger.log(Level.FINEST,"Initiated connection to ["+peer.toString()+"]");
 				}
+			} else {
+				logger.log(Level.INFO,"Transport connection to '" + peer.host() + "' cannot be established because the transport protocol ("+peer.transportProtocol()+") is not supported");
 			}
 		}
 	}
