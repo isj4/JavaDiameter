@@ -1,5 +1,5 @@
 Changes 0.9.6.5 -> 0.9.6.6
-* AVP_Time.queryDate() returned wrong values de to 32-bti arithmic.
+* AVP_Time.queryDate() returned wrong values de to 32-bit arithmic.
 
 Changes 0.9.6.4 -> 0.9.6.5
 * NodeManager could not find matching oustanding requests if the state object
