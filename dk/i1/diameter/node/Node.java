@@ -480,7 +480,7 @@ public class Node {
 			try {
 				ctor = cls.getConstructor(this.getClass(),
 			                        	  settings.getClass(),
-			                        	  logger.getClass()
+			                        	  cls_ldr.loadClass("java.util.logging.Logger")
 			                        	 );
 			} catch(java.lang.NoSuchMethodException ex) {
 				logger.log(loglevel,"Could not find constructor for "+class_name,ex);

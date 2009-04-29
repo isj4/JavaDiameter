@@ -1,6 +1,8 @@
-Changes 0.9.6.6 -> 
+Changes 0.9.6.6 -> 0.9.6.7
 * Expanded CC example server
 * Fixed npe on outgoing sctp connections that fail
+* Support replaced logger implementation, eg. in resin and other application
+  servers.
 
 Changes 0.9.6.5 -> 0.9.6.6
 * AVP_Time.queryDate() returned wrong values de to 32-bit arithmic.
