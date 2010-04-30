@@ -91,11 +91,6 @@ public class NodeManager implements MessageDispatcher, ConnectionListener {
 		this.settings = settings;
 		req_map = new HashMap<ConnectionKey,Map<Integer,RequestData> >();
 		this.logger = Logger.getLogger("dk.i1.diameter.node");
-		stop_timeout_thread = false;
-		timeout_thread_actively_waiting = false;
-		timeout_thread = new TimeoutThread();
-		timeout_thread.setDaemon(true);
-		timeout_thread.start();
 	}
 	
 	/**
@@ -105,6 +100,11 @@ public class NodeManager implements MessageDispatcher, ConnectionListener {
 	 */
 	public void start() throws java.io.IOException, UnsupportedTransportProtocolException {
 		node.start();
+		stop_timeout_thread = false;
+		timeout_thread_actively_waiting = false;
+		timeout_thread = new TimeoutThread();
+		timeout_thread.setDaemon(true);
+		timeout_thread.start();
 	}
 	/**
 	 * Stop the node manager immediately.
@@ -134,6 +134,7 @@ public class NodeManager implements MessageDispatcher, ConnectionListener {
 		try {
 			timeout_thread.join();
 		} catch(java.lang.InterruptedException ex) {}
+		timeout_thread = null;
 		//Fastest way to clear it...
 		req_map = new HashMap<ConnectionKey,Map<Integer,RequestData> >();
 	}
