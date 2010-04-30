@@ -316,6 +316,9 @@ class TCPNode extends NodeImplementation {
 		try {
 			SocketChannel channel = SocketChannel.open();
 			channel.configureBlocking(false);
+			NodeSettings.PortRange port_range = settings.TCPPortRange();
+			if(port_range!=null)
+				bindChannelInRange(channel,port_range.min,port_range.max);
 			InetSocketAddress address = new InetSocketAddress(peer.host(),peer.port());
 			try {
 				logger.log(Level.FINEST,"Initiating TCP connection to " + address.toString());
@@ -360,4 +363,19 @@ class TCPNode extends NodeImplementation {
 		return new TCPConnection(this,watchdog_interval,idle_timeout);
 	}
 
+	private static int last_tried_port=0;
+	private void bindChannelInRange(SocketChannel channel, int min, int max) throws java.io.IOException
+	{
+		int max_iterations = max-min+1;
+		for(int i=0; i<max_iterations; i++) {
+			last_tried_port++;
+			if(last_tried_port<min) last_tried_port=min;
+			if(last_tried_port>max) last_tried_port=min;
+			try {
+				channel.socket().bind(new InetSocketAddress(last_tried_port));
+			} catch(java.net.BindException ex) {}
+			return;
+		}
+		throw new BindException("Could not bind socket in range "+min+"-"+max);
+	}
 }

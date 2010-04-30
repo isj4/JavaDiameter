@@ -61,6 +61,22 @@ public class NodeSettings {
 	private long idle_close_timeout;
 	private Boolean use_tcp;
 	private Boolean use_sctp;
+	private PortRange port_range;
+	
+	/**
+	 * A port range
+	 */
+	public static class PortRange {
+		public int min;
+		public int max;
+		public PortRange(int min, int max) throws InvalidSettingException
+		{
+			if(min<=0 || min>max || max>=65536)
+				throw new InvalidSettingException("Invalid port range, 0 < min <= max < 65536");
+			this.min = min;
+			this.max = max;
+		}
+	};
 	
 	/**
 	 * Constructor for NodeSettings.
@@ -230,5 +246,34 @@ public class NodeSettings {
 	 */
 	public void setUseSCTP(Boolean use_sctp) {
 		this.use_sctp = use_sctp;
+	}
+	
+	/**
+	 * Set the source port range for outgoing TCP connections
+	 * If the source port range is no tset (default) then the stack will
+	 * use an ephemeral source port. Specifying the source prot range can be
+	 * useful in some environments where there are restictive NAT issues,
+	 * or where the firewall administrator cannot accomodate a free soruce port range.
+	 * @param port_range A source port range to use for initiating outgoing TCP connections. 
+	 * @since 0.9.6.8
+	 */
+	public void TCPPortRange(PortRange port_range) throws InvalidSettingException {
+		this.port_range = port_range;
+	}
+	/**
+	 * Set the source port range for outgoing TCP connections
+	 * @see #TCPPortRange(PortRange)
+	 * @since 0.9.6.8
+	 */
+	public void TCPPortRange(int min, int max) throws InvalidSettingException {
+		port_range = new PortRange(min,max);
+	}
+	/**
+	 * Get the source port range for outgoing TCP connections
+	 * @return A PortRange object, or null
+	 * @since 0.9.6.8
+	 */
+	public PortRange TCPPortRange() {
+		return port_range;
 	}
 }
