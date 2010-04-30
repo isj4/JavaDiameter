@@ -486,8 +486,8 @@ public class NodeManager implements MessageDispatcher, ConnectionListener {
 		}
 		public void run() {
 			while(!stop_timeout_thread) {
-				boolean any_timeouts_found = false;
 				synchronized(req_map) {
+					boolean any_timeouts_found = false;
 					long now = System.currentTimeMillis();
 					for(Map.Entry<ConnectionKey,Map<Integer,RequestData>> e_c : req_map.entrySet()) {
 						ConnectionKey connkey = e_c.getKey();
@@ -500,16 +500,16 @@ public class NodeManager implements MessageDispatcher, ConnectionListener {
 							}
 						}
 					}
+					try {
+						if(any_timeouts_found) {
+							timeout_thread_actively_waiting = true;
+							req_map.wait(1000);
+						} else {
+							req_map.wait();
+						}
+						timeout_thread_actively_waiting = false;
+					} catch(java.lang.InterruptedException ex) {}
 				}
-				try {
-					if(any_timeouts_found) {
-						timeout_thread_actively_waiting = true;
-						req_map.wait(1000);
-					} else {
-						req_map.wait();
-					}
-					timeout_thread_actively_waiting = false;
-				} catch(java.lang.InterruptedException ex) {}
 			}
 		}
 	}
