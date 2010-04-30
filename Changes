@@ -1,5 +1,7 @@
 Changes 0.9.6.7 -> 0.9.6.8
  * Added timeout capability to SimpleSyncClient and NodeManager
+ * Logs destination IP address before initiating outgoing connections
+ * Prevent double-start of stack (would lead to erratic behaviour)
 Changes 0.9.6.6 -> 0.9.6.7
 * Expanded CC example server
 * Fixed npe on outgoing sctp connections that fail

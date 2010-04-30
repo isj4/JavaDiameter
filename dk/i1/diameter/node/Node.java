@@ -98,6 +98,8 @@ public class Node {
 	 * @throws UnsupportedTransportProtocolException If a transport-protocol has been specified as mandatory but could not be initialised.
 	 */
 	public void start() throws java.io.IOException, UnsupportedTransportProtocolException {
+		if(tcp_node!=null || sctp_node!=null) //use these members to signal that we are running
+			throw new java.io.IOException("Diameter stack is already running");
 		logger.log(Level.INFO,"Starting Diameter node");
 		please_stop = false;
 		prepare();
@@ -197,10 +199,14 @@ public class Node {
 		}
 		map_key_conn = null;
 		persistent_peers = null;
-		if(tcp_node!=null)
+		if(tcp_node!=null) {
 			tcp_node.closeIO();
-		if(sctp_node!=null)
+			tcp_node = null;
+		}
+		if(sctp_node!=null) {
 			sctp_node.closeIO();
+			sctp_node = null;
+		}
 		logger.log(Level.INFO,"Diameter node stopped");
 	}
 	
