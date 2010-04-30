@@ -56,10 +56,21 @@ import java.util.logging.Level;
  * </ol>
  */
 public class NodeManager implements MessageDispatcher, ConnectionListener {
+	private class RequestData {
+		public Object state;
+		public long timeout_time;
+		RequestData(Object state, long timeout_time) {
+			this.state = state;
+			this.timeout_time = timeout_time;
+		}
+	};
 	private Node node;
 	private NodeSettings settings;
-	private Map<ConnectionKey,Map<Integer,Object> > req_map;
+	private Map<ConnectionKey,Map<Integer,RequestData> > req_map;
 	private Logger logger;
+	private boolean stop_timeout_thread;
+	private TimeoutThread timeout_thread;
+	private boolean timeout_thread_actively_waiting;
 	
 	/**
 	 * Constructor for NodeManager.
@@ -78,8 +89,13 @@ public class NodeManager implements MessageDispatcher, ConnectionListener {
 	public NodeManager(NodeSettings settings, NodeValidator node_validator) {
 		node = new Node(this,this,settings,node_validator);
 		this.settings = settings;
-		req_map = new HashMap<ConnectionKey,Map<Integer,Object> >();
+		req_map = new HashMap<ConnectionKey,Map<Integer,RequestData> >();
 		this.logger = Logger.getLogger("dk.i1.diameter.node");
+		stop_timeout_thread = false;
+		timeout_thread_actively_waiting = false;
+		timeout_thread = new TimeoutThread();
+		timeout_thread.setDaemon(true);
+		timeout_thread.start();
 	}
 	
 	/**
@@ -105,16 +121,21 @@ public class NodeManager implements MessageDispatcher, ConnectionListener {
 	 */
 	public void stop(long grace_time) {
 		node.stop(grace_time);
+		stop_timeout_thread = true;
 		synchronized(req_map) {
-			for(Map.Entry<ConnectionKey,Map<Integer,Object>> e_c : req_map.entrySet()) {
+			for(Map.Entry<ConnectionKey,Map<Integer,RequestData>> e_c : req_map.entrySet()) {
 				ConnectionKey connkey = e_c.getKey();
-				for(Map.Entry<Integer,Object> e_s : e_c.getValue().entrySet()) {
-					handleAnswer(null,connkey,e_s.getValue());
+				for(Map.Entry<Integer,RequestData> e_s : e_c.getValue().entrySet()) {
+					handleAnswer(null,connkey,e_s.getValue().state);
 				}
 			}
 		}
+		req_map.notify();
+		try {
+			timeout_thread.join();
+		} catch(java.lang.InterruptedException ex) {}
 		//Fastest way to clear it...
-		req_map = new HashMap<ConnectionKey,Map<Integer,Object> >();
+		req_map = new HashMap<ConnectionKey,Map<Integer,RequestData> >();
 	}
 	
 	/**
@@ -239,6 +260,23 @@ public class NodeManager implements MessageDispatcher, ConnectionListener {
 	 * @throws StaleConnectionException If the ConnectionKey refers to a lost connection.
 	 */
 	protected final void forwardRequest(Message request, ConnectionKey connkey, Object state) throws StaleConnectionException, NotARequestException, NotProxiableException {
+		forwardRequest(request,connkey,state,-1);
+	}
+	/**
+	 * Forward a request.
+	 * Forward the request to the specified connection. The request will
+	 * automatically get a route-record added if not already present.
+	 * This method is meant to be called from handleRequest().
+	 * @param request The request to forward
+	 * @param connkey The connection to use
+	 * @param state A state object that will be passed to handleAnswer() when the answer arrives. You should remember the ingoing connection and hop-by-hop identifier
+	 * @param timeout Timeout in milliseconds, -1 means no timeout
+	 * @throws NotARequestException If the request does not have the R bit set in the header.
+	 * @throws NotProxiableException If the request does not have the P bit set in the header.
+	 * @throws StaleConnectionException If the ConnectionKey refers to a lost connection.
+	 * @since 0.9.6.8 timeout parameter introduced
+	 */
+	protected final void forwardRequest(Message request, ConnectionKey connkey, Object state, long timeout) throws StaleConnectionException, NotARequestException, NotProxiableException {
 		if(!request.hdr.isProxiable())
 			throw new NotProxiableException();
 		boolean our_route_record_found = false;
@@ -254,7 +292,7 @@ public class NodeManager implements MessageDispatcher, ConnectionListener {
 			request.add(new AVP_UTF8String(ProtocolConstants.DI_ROUTE_RECORD,settings.hostId()));
 		}
 		//send it
-		sendRequest(request,connkey,state);
+		sendRequest(request,connkey,state,timeout);
 	}
 	/**
 	 * Forward an answer.
@@ -288,14 +326,31 @@ public class NodeManager implements MessageDispatcher, ConnectionListener {
 	 * @throws StaleConnectionException If the ConnectionKey refers to a lost connection.
 	 */
 	public final void sendRequest(Message request, ConnectionKey connkey, Object state) throws StaleConnectionException, NotARequestException {
+		sendRequest(request,connkey,state,-1);
+	}
+	/**
+	 * Sends a request.
+	 * A request initiated by this node is sent to the specified connection.
+	 * The hop-by-hop identifier of the message is set. This is not symmetric with the other sendRequest method.
+	 * @param request The request.
+	 * @param connkey The connection to use.
+	 * @param state A state object that will be passed to handleAnswer() when the answer arrives.
+	 * @param timeout Timeout in milliseconds, -1 means no timeout
+	 * @throws NotARequestException If the request does not have the R bit set in the header.
+	 * @throws StaleConnectionException If the ConnectionKey refers to a lost connection.
+	 * @since 0.9.6.8 timeout parameter introduced
+	 */
+	public final void sendRequest(Message request, ConnectionKey connkey, Object state, long timeout) throws StaleConnectionException, NotARequestException {
 		if(!request.hdr.isRequest())
 			throw new NotARequestException();
 		request.hdr.hop_by_hop_identifier = node.nextHopByHopIdentifier(connkey);
 		//remember state
 		synchronized(req_map) {
-			Map<Integer,Object> e_c = req_map.get(connkey);
+			Map<Integer,RequestData> e_c = req_map.get(connkey);
 			if(e_c==null) throw new StaleConnectionException();
-			e_c.put(request.hdr.hop_by_hop_identifier,state);
+			e_c.put(request.hdr.hop_by_hop_identifier,new RequestData(state,timeout));
+			if(timeout>=0 && !timeout_thread_actively_waiting)
+				req_map.notify(); //wake up timeout thread
 		}
 		node.sendMessage(request,connkey);
 		logger.log(Level.FINER,"Request sent, command_code="+request.hdr.command_code+" hop_by_hop_identifier="+request.hdr.hop_by_hop_identifier);
@@ -315,6 +370,22 @@ public class NodeManager implements MessageDispatcher, ConnectionListener {
 	 * @throws NotRoutableException If the message could not be sent to any of the peers.
 	 */
 	public final void sendRequest(Message request, Peer peers[], Object state) throws NotRoutableException, NotARequestException {
+		sendRequest(request,peers,state,-1);
+	}
+	/**
+	 * Sends a request.
+	 * The request is sent to one of the peers and an optional state object is remembered.
+	 * Please note that handleAnswer() for this request may get called before this method returns. This can happen if the peer is very fast and the OS thread scheduler decides to schedule the networking thread.
+	 * The end-to-end identifier of the message is set. This is not symmetric with the other sendRequest method.
+	 * @param request The request to send.
+	 * @param peers The candidate peers
+	 * @param state A state object to be remembered. This will be passed to the handleAnswer() method when the answer arrives.
+	 * @param timeout Timeout in milliseconds, -1 means no timeout
+	 * @throws NotARequestException If the request does not have the R bit set in the header.
+	 * @throws NotRoutableException If the message could not be sent to any of the peers.
+	 * @since 0.9.6.8 timeout parameter introduced
+	 */
+	public final void sendRequest(Message request, Peer peers[], Object state, long timeout) throws NotRoutableException, NotARequestException {
 		logger.log(Level.FINER,"Sending request (command_code="+request.hdr.command_code+") to "+peers.length+" peers");
 		request.hdr.end_to_end_identifier = node.nextEndToEndIdentifier();
 		boolean any_peers = false;
@@ -332,7 +403,7 @@ public class NodeManager implements MessageDispatcher, ConnectionListener {
 			}
 			any_capable_peers=true;
 			try {
-				sendRequest(request,connkey,state);
+				sendRequest(request,connkey,state,timeout);
 				return;
 			} catch (StaleConnectionException e) {
 				//ok
@@ -365,9 +436,9 @@ public class NodeManager implements MessageDispatcher, ConnectionListener {
 			Object state=null;
 			boolean found=false;
 			synchronized(req_map) {
-				Map<Integer,Object> e_c = req_map.get(connkey);
+				Map<Integer,RequestData> e_c = req_map.get(connkey);
 				if(e_c!=null) {
-					state = e_c.get(msg.hdr.hop_by_hop_identifier);
+					state = e_c.get(msg.hdr.hop_by_hop_identifier).state;
 					e_c.remove(msg.hdr.hop_by_hop_identifier);
 					found = true;
 				}
@@ -390,17 +461,54 @@ public class NodeManager implements MessageDispatcher, ConnectionListener {
 		synchronized(req_map) {
 			if(up) {
 				//register the new connection
-				req_map.put(connkey, new HashMap<Integer,Object>());
+				req_map.put(connkey, new HashMap<Integer,RequestData>());
 			} else {
 				//find outstanding requests, and call handleAnswer with NULL
-				Map<Integer,Object> e_c = req_map.get(connkey);
+				Map<Integer,RequestData> e_c = req_map.get(connkey);
 				if(e_c==null) return;
 				//forget the connection
 				req_map.remove(connkey);
 				//remove the entries
-				for(Map.Entry<Integer,Object> e_s : e_c.entrySet()) {
-					handleAnswer(null,connkey,e_s.getValue());
+				for(Map.Entry<Integer,RequestData> e_s : e_c.entrySet()) {
+					handleAnswer(null,connkey,e_s.getValue().state);
 				}
+			}
+		}
+	}
+	
+	/**
+	 * Thread for handling request timeouts. The thread is not accurate but does ensure that pending requests are timed out
+	 */
+	private class TimeoutThread extends Thread {
+		public TimeoutThread() {
+			super("NodeManager request timeout thread");
+		}
+		public void run() {
+			while(!stop_timeout_thread) {
+				boolean any_timeouts_found = false;
+				synchronized(req_map) {
+					long now = System.currentTimeMillis();
+					for(Map.Entry<ConnectionKey,Map<Integer,RequestData>> e_c : req_map.entrySet()) {
+						ConnectionKey connkey = e_c.getKey();
+						for(Map.Entry<Integer,RequestData> e_s : e_c.getValue().entrySet()) {
+							RequestData rd = e_s.getValue();
+							if(rd.timeout_time>=0) any_timeouts_found=true;
+							if(rd.timeout_time>=0 && rd.timeout_time<=now) {
+								e_c.getValue().remove(e_s.getKey());
+								handleAnswer(null,connkey,rd.state);
+							}
+						}
+					}
+				}
+				try {
+					if(any_timeouts_found) {
+						timeout_thread_actively_waiting = true;
+						req_map.wait(1000);
+					} else {
+						req_map.wait();
+					}
+					timeout_thread_actively_waiting = false;
+				} catch(java.lang.InterruptedException ex) {}
 			}
 		}
 	}

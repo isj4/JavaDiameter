@@ -55,16 +55,36 @@ public class SimpleSyncClient extends NodeManager {
 	 * @return The answer to the request. Null if there is no answer (all peers down, or other error)
 	 */
 	public Message sendRequest(Message request) {
+		return sendRequest(request,-1);
+	}
+	
+	/**
+	 * Send a request and wait for an answer.
+	 * @param    request The request to send
+	 * @param    timeout Timeout in milliseconds. -1 means no timeout.
+	 * @return The answer to the request. Null if there is no answer (all peers down, timeout, or other error)
+	 * @since 0.9.6.8 timeout parameter introduced
+	 */
+	public Message sendRequest(Message request, long timeout) {
 		SyncCall sc = new SyncCall();
 		sc.answer_ready = false;
 		sc.answer=null;
 		
+		long timeout_time = System.currentTimeMillis() + timeout;
+		
 		try {
-			sendRequest(request, peers, sc);
+			sendRequest(request, peers, sc, timeout);
 			//ok, sent
 			synchronized(sc) {
-				while(!sc.answer_ready)
-					sc.wait();
+				if(timeout>=0) {
+					long now = System.currentTimeMillis();
+					long relative_timeout = timeout_time - now;
+					if(relative_timeout>0)
+						while(System.currentTimeMillis()<timeout_time && !sc.answer_ready)
+							sc.wait(relative_timeout);
+				} else
+					while(!sc.answer_ready)
+						sc.wait();
 			}
 		} catch(NotRoutableException e) {
 			System.out.println("SimpleSyncClient.sendRequest(): not routable");
