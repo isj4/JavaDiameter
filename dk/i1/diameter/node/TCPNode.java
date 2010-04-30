@@ -318,6 +318,7 @@ class TCPNode extends NodeImplementation {
 			channel.configureBlocking(false);
 			InetSocketAddress address = new InetSocketAddress(peer.host(),peer.port());
 			try {
+				logger.log(Level.FINEST,"Initiating TCP connection to " + address.toString());
 				if(channel.connect(address)) {
 					//This only happens on Solaris when connecting locally
 					logger.log(Level.FINEST,"Connected!");

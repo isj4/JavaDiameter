@@ -558,6 +558,7 @@ class SCTPNode extends NodeImplementation {
 			try {
 				oc.address = InetAddress.getByName(peer.host());
 				InetSocketAddress sock_addr = new InetSocketAddress(oc.address,peer.port());
+				logger.log(Level.FINEST,"Initiating SCTP connection to " + sock_addr.toString());
 				sctp_socket.connect(sock_addr);
 				conn.state = Connection.State.connecting;
 				return true;
