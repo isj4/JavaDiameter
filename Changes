@@ -1,3 +1,6 @@
+Changes 0.9.6.8 -> 0.9.6.9
+ * Fixed IllegalMonitorStateException when shutting down
+
 Changes 0.9.6.7 -> 0.9.6.8
  * Added timeout capability to SimpleSyncClient and NodeManager
  * Logs destination IP address before initiating outgoing connections

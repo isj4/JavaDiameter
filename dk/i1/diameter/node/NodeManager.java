@@ -129,8 +129,8 @@ public class NodeManager implements MessageDispatcher, ConnectionListener {
 					handleAnswer(null,connkey,e_s.getValue().state);
 				}
 			}
+			req_map.notify();
 		}
-		req_map.notify();
 		try {
 			timeout_thread.join();
 		} catch(java.lang.InterruptedException ex) {}
