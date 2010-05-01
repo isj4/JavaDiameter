@@ -1276,7 +1276,7 @@ public class Node {
 		if(conn.state==Connection.State.closing)
 			logger.log(Level.INFO,"Got a DPA from "+conn.host_id);
 		else
-			logger.log(Level.WARNING,"Got a DPA. This is not expected");
+			logger.log(Level.WARNING,"Got a DPA. This is not expected (state="+conn.state+")");
 		return false; //in any case close the connection
 	}
 	private boolean handleUnknownRequest(Message msg, Connection conn) {
