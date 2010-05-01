@@ -690,8 +690,8 @@ public class Node {
 	private void initiateConnectionClose(Connection conn, int why) {
 		if(conn.state!=Connection.State.ready)
 			return; //should probably never happen
-		sendDPR(conn,why);
 		conn.state = Connection.State.closing;
+		sendDPR(conn,why);
 	}
 	
 	boolean handleMessage(Message msg, Connection conn) {
