@@ -22,10 +22,14 @@ class ConnectionTimers {
 	private static Random random=null;
 	private static synchronized long generateJitter() {
 		if(random==null) {
-			//todo: allow configuration of the rng algorithm
-			try {
-				random = java.security.SecureRandom.getInstance("SHA1PRNG");
-			} catch(java.security.NoSuchAlgorithmException ex) {
+			String v = System.getProperty("dk.i1.diameter.node.jitter_prng");
+			if(v==null)
+				v="SHA1PRNG";
+			if(!v.equals("bogus")) {
+				try {
+					random = java.security.SecureRandom.getInstance("SHA1PRNG");
+				} catch(java.security.NoSuchAlgorithmException ex) {
+				}
 			}
 			if(random==null) {
 				random = new Random();
