@@ -19,6 +19,8 @@ import java.lang.reflect.Constructor;
  * get detailed logging (including hex-dumps of incoming and outgoing packets)
  * by putting "dk.i1.diameter.node.level = ALL" into your log.properties
  * file (or equivalent)
+ *
+ * <h3>Enabling TCP and/or SCTP transport protocols</h3>
  * <p>The Node instance uses two properties when deciding which transport-protocols to support:
  * <ul>
  * <li><tt>dk.i1.diameter.node.use_tcp=</tt> [<tt><em>true</em></tt>|<tt><em>false</em></tt>|<tt><em>maybe</em></tt>] (default:true)</li>
@@ -28,6 +30,17 @@ import java.lang.reflect.Constructor;
  * If a setting is false, then no attempt will be made to use that transport-protocol.
  * If a setting is 'maybe' then the stack will try to initialize and use that trasnport-protocol, but failure to do so will not cause the stack initialization to fail.
  * You can override the properties by changing the setting with {@link NodeSettings#setUseTCP} and {@link NodeSettings#setUseSCTP}.
+ *
+ * <h3>DW jitter, system RNG and stalls on first connection</h3>
+ * The node applies jitter to the DW intervals as required by RFC3588->RFC3539->RFC1750, by using
+ * <tt>java.security.SecureRandom.getInstance("SHA1PRNG")</tt> when initializing. This
+ * can however cause the stack to stall when the <em>first</em> connection is established
+ * if the system RNG does not have enough entropy (seen on on a machine with
+ * little activity and no hardware RNG). To circumvent this you can set the property:
+ * <p><tt>dk.i1.diameter.node.jitter_prng=</tt><em>your favorite PRNG</em></p>
+ * The default value is <tt>SHA1PRNG</tt>.
+ * If set to <tt>bogus</tt> then the stack simply uses Random() instead.
+ * Doing so technically violates RFC3588->RFC3539->RFC1750
  * @see NodeManager
  */
 public class Node {
