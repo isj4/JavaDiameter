@@ -349,7 +349,7 @@ public class NodeManager implements MessageDispatcher, ConnectionListener {
 		synchronized(req_map) {
 			Map<Integer,RequestData> e_c = req_map.get(connkey);
 			if(e_c==null) throw new StaleConnectionException();
-			e_c.put(request.hdr.hop_by_hop_identifier,new RequestData(state,timeout));
+			e_c.put(request.hdr.hop_by_hop_identifier,new RequestData(state,System.currentTimeMillis()+timeout));
 			if(timeout>=0 && !timeout_thread_actively_waiting)
 				req_map.notify(); //wake up timeout thread
 		}
@@ -496,6 +496,7 @@ public class NodeManager implements MessageDispatcher, ConnectionListener {
 							if(rd.timeout_time>=0) any_timeouts_found=true;
 							if(rd.timeout_time>=0 && rd.timeout_time<=now) {
 								e_c.getValue().remove(e_s.getKey());
+								logger.log(Level.FINEST,"Timing out request");
 								handleAnswer(null,connkey,rd.state);
 							}
 						}
