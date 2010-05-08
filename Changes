@@ -1,4 +1,4 @@
-Changes 0.9.6.9 ->
+Changes 0.9.6.9 -> 0.9.6.10
  * Allow bogus PRNG when initializing DWR jitter
  * Eliminate (harmless) race condition when shutting down under high load
    leading to "WARNING: Got a DPA. This is not expected"
