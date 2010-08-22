@@ -1,3 +1,7 @@
+Changes 0.9.6.10 -> 0.9.6.11
+ * Handle 3GPP mismatch between announced applications in CER/CEA and actual
+   messages.
+
 Changes 0.9.6.9 -> 0.9.6.10
  * Allow bogus PRNG when initializing DWR jitter
  * Eliminate (harmless) race condition when shutting down under high load
