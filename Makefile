@@ -23,6 +23,7 @@ CLASSES=$P/packunpack.class \
         $P/MessageHeader.class \
         $P/Message.class \
         $P/ProtocolConstants.class \
+        $P/VendorIDs.class \
         $P/Utils.class \
         $P/node/Capability.class \
         $P/node/UnsupportedURIException.class \

@@ -849,7 +849,14 @@ public class Node {
 				int app = new AVP_Unsigned32(avp).queryValue();
 				if(logger.isLoggable(Level.FINE))
 					logger.log(Level.FINE,"auth-application-id="+app);
-				return peer.capabilities.isAllowedAuthApp(app);
+				if(peer.capabilities.isAllowedAuthApp(app))
+					return true;
+				//special wrinkle for 3GPP IMS applications where CER/CEA uses
+				//vendor-specific-application but the actual messages uses plain
+				//auth-application-id
+				if(peer.capabilities.isAllowedAuthApp(VendorIDs.Vendor_3GPP,app))
+					return true;
+				return false;
 			}
 			avp = msg.find(ProtocolConstants.DI_ACCT_APPLICATION_ID);
 			if(avp!=null) {
