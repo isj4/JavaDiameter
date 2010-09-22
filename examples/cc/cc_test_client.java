@@ -8,7 +8,7 @@ import dk.i1.diameter.node.*;
 class cc_test_client {
 	public static final void main(String args[]) throws Exception {
 		if(args.length!=4) {
-			System.out.println("Usage: <host-id> <realm> <peer> <per-port>");
+			System.out.println("Usage: <host-id> <realm> <peer> <peer-port>");
 			return;
 		}
 		
