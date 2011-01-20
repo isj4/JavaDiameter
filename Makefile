@@ -40,6 +40,7 @@ CLASSES=$P/packunpack.class \
         $P/node/StaleConnectionException.class \
         $P/node/NodeSettings.class \
         $P/node/ConnectionBuffers.class \
+        $P/node/TLSConnectionBuffers.class \
         $P/node/NormalConnectionBuffers.class \
         $P/node/ConnectionTimers.class \
         $P/node/Connection.class \
@@ -79,7 +80,7 @@ CLASSES=$P/packunpack.class \
 	abnf/ABNFConverter.class \
 
 .PHONY: all
-all: $(CLASSES)
+all: $(CLASSES) Diameter.jar
 
 Diameter.jar: $(CLASSES)
 	jar -cf $@ `find dk -name \*.class`

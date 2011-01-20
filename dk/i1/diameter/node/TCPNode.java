@@ -96,6 +96,7 @@ class TCPNode extends NodeImplementation {
 		}
 		
 		for(;;) {
+logger.log(Level.FINEST,"--------------------------------------------------------------");
 			if(please_stop) {
 				if(System.currentTimeMillis()>=shutdown_deadline)
 					break;
@@ -210,6 +211,7 @@ class TCPNode extends NodeImplementation {
 			closeConnection(conn);
 			return;
 		}
+logger.log(Level.FINEST,"handleReadable: " + connection_buffers.netInBuffer().position() + " bytes in net-in-buffer");
 		conn.processNetInBuffer();
 		processInBuffer(conn);
  		if(count<0 && conn.state!=Connection.State.closed) {
@@ -259,8 +261,11 @@ class TCPNode extends NodeImplementation {
 			}
 			if(status==Message.decode_status.not_enough) break;
 		}
+		logger.log(Level.FINEST,"conn.connection_buffers.appInBuffer()="+conn.connection_buffers.appInBuffer().toString());
+logger.log(Level.FINEST,"offset="+offset);
 		conn.consumeAppInBuffer(offset);
 		//System.out.println("processInBuffer(): the end");
+logger.log(Level.FINEST,"pre: app_in_buffer.position=" + conn.connection_buffers.appInBuffer().position());
 	}
 	private void handleWritable(Connection conn_) {
 		TCPConnection conn = (TCPConnection)conn_;
@@ -362,7 +367,6 @@ class TCPNode extends NodeImplementation {
 	Connection newConnection(long watchdog_interval, long idle_timeout) {
 		return new TCPConnection(this,watchdog_interval,idle_timeout);
 	}
-
 	private static int last_tried_port=0;
 	private void bindChannelInRange(SocketChannel channel, int min, int max) throws java.io.IOException
 	{

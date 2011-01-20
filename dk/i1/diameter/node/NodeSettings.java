@@ -1,5 +1,10 @@
 package dk.i1.diameter.node;
 import java.util.Random;
+import javax.net.ssl.SSLContext;
+import java.security.KeyStore;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.TrustManagerFactory;
+import java.io.FileInputStream;
 
 /**
  * Configuration for a node.
@@ -62,6 +67,7 @@ public class NodeSettings {
 	private Boolean use_tcp;
 	private Boolean use_sctp;
 	private PortRange port_range;
+	private SSLContext ssl_context;
 	
 	/**
 	 * A port range
@@ -275,5 +281,43 @@ public class NodeSettings {
 	 */
 	public PortRange TCPPortRange() {
 		return port_range;
+	}
+	
+	/**Sets the SSL context used by the node for in-band security.
+	 * The context must support the TLS protocol
+	 * @since 0.9.7
+	 */
+	public void setSSLContext(SSLContext ssl_context) throws InvalidSettingException {
+		if(!ssl_context.getProtocol().equals("TLS"))
+			throw new InvalidSettingException("SSL context must be TLS");
+		this.ssl_context = ssl_context;
+	}
+	/**Sets the SSL context
+	 * This convenience method opens and loads the kyetstore, creating trust
+	 * and security managers et cetera, and creates an SSLContext based on
+	 * that. You can create keystore files with the JDK tool 'keytool'
+	 * @param keystore_filename Filename of the keystore which must be in JKS format
+	 * @param passphrase Passphrase for the keystore and keys
+	 * @since 0.9.7
+	 */
+	public void setSSLContext(String keystore_filename, String passphrase) throws java.security.GeneralSecurityException, java.io.IOException {
+		char[] password = passphrase.toCharArray();
+		KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
+		ks.load(new FileInputStream(keystore_filename), password);
+		
+		KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
+		kmf.init(ks, password);
+		
+		TrustManagerFactory tmf = TrustManagerFactory.getInstance("SunX509");
+		tmf.init(ks);
+
+		SSLContext ssl = SSLContext.getInstance("TLS");
+		ssl.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
+		this.ssl_context = ssl;
+	}
+	/**Get the SSL context
+	 */
+	public SSLContext getSSLContext() {
+		return ssl_context;
 	}
 }

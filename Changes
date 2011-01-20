@@ -1,3 +1,6 @@
+Changes 0.9.6 ->
+ * TCP+TLS support
+
 Changes 0.9.6.10 -> 0.9.6.11
  * Handle 3GPP mismatch between announced applications in CER/CEA and actual
    messages.

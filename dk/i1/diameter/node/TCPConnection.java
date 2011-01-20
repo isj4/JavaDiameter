@@ -6,7 +6,11 @@ import java.net.InetSocketAddress;
 import java.util.Collection;
 import java.util.ArrayList;
 
+import java.util.logging.Logger;
+import java.util.logging.Level;
+
 class TCPConnection extends Connection {
+static Logger logger = Logger.getLogger("dk.i1.diameter.node");
 	TCPNode node_impl;
 	SocketChannel channel;
 	ConnectionBuffers connection_buffers;
@@ -34,8 +38,14 @@ class TCPConnection extends Connection {
 	}
 	
 	void processNetInBuffer() {
+logger.log(Level.FINEST,"entered");
 		connection_buffers.processNetInBuffer();
-	}
+logger.log(Level.FINEST,"staet="+state);
+		if(connection_buffers instanceof TLSConnectionBuffers &&
+		   state==State.tls &&
+		   ((TLSConnectionBuffers)connection_buffers).handshakeIsFinished())
+			node_impl.TLSFinished(this);
+logger.log(Level.FINEST,"leaving");	}
 	void processAppOutBuffer() {
 		connection_buffers.processAppOutBuffer();
 	}
@@ -60,5 +70,9 @@ class TCPConnection extends Connection {
 	
 	Peer toPeer() {
 		return new Peer(toInetAddress(),channel.socket().getPort());
+	}
+	
+	void switchToTLS(javax.net.ssl.SSLContext ssl_context, boolean client_mode) {
+		connection_buffers = new TLSConnectionBuffers((NormalConnectionBuffers)connection_buffers,ssl_context,client_mode);
 	}
 }

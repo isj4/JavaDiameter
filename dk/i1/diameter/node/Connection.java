@@ -9,6 +9,7 @@ abstract class Connection {
 	public ConnectionTimers timers;
 	public ConnectionKey key;
 	private int hop_by_hop_identifier_seq;
+	boolean tls_supported;
 	
 	public enum State {
 		connecting,
@@ -27,6 +28,7 @@ abstract class Connection {
 		key = new ConnectionKey();
 		hop_by_hop_identifier_seq = new java.util.Random().nextInt();
 		state = State.connected_in;
+		tls_supported = false;
 	}
 	
 	public synchronized int nextHopByHopIdentifier() {
@@ -46,4 +48,6 @@ abstract class Connection {
 	long watchdogInterval() {
 		return timers.cfg_watchdog_timer;
 	}
+	
+	abstract void switchToTLS(javax.net.ssl.SSLContext ssl_context, boolean client_mode);
 }

@@ -16,11 +16,17 @@ abstract class ConnectionBuffers {
 	abstract void makeSpaceInNetInBuffer();
 	abstract void makeSpaceInAppOutBuffer(int how_much);
 	
+	void consumeNetInBuffer(int bytes) {
+		consume(netInBuffer(),bytes);
+	}
 	void consumeNetOutBuffer(int bytes) {
 		consume(netOutBuffer(),bytes);
 	}
 	void consumeAppInBuffer(int bytes) {
 		consume(appInBuffer(),bytes);
+	}
+	void consumeAppOutBuffer(int bytes) {
+		consume(appOutBuffer(),bytes);
 	}
 	
 	

@@ -72,4 +72,9 @@ class SCTPConnection extends Connection {
 	void removeFirstQueuedMessage() {
 		queued_messages.poll();
 	}
+	
+	void switchToTLS(javax.net.ssl.SSLContext ssl_context, boolean client_mode) {
+		//connection_buffers = new TLSConnectionBuffers((NormalConnectionBuffers)connection_buffers,ssl_context,client_mode);
+		//todo
+	}
 }

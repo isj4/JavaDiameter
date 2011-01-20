@@ -34,6 +34,7 @@ class cc_test_server extends NodeManager {
 				capability,
 				port,
 				"cc_test_server", 0x01000000);
+			node_settings.setSSLContext(".keystore","password");
 		} catch (InvalidSettingException e) {
 			System.out.println(e.toString());
 			return;

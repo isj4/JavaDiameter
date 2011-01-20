@@ -62,4 +62,7 @@ abstract class NodeImplementation {
 	void initiateCER(Connection conn) {
 		node.initiateCER(conn);
 	}
+	void TLSFinished(TCPConnection conn) {
+		node.TLSFinished(conn);
+	}
 }

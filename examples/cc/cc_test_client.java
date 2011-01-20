@@ -29,6 +29,7 @@ class cc_test_client {
 				capability,
 				0,
 				"cc_test_client", 0x01000000);
+			node_settings.setSSLContext(".keystore","password");
 		} catch (InvalidSettingException e) {
 			System.out.println(e.toString());
 			return;
@@ -161,6 +162,6 @@ class cc_test_client {
 		}
 		
 		//Stop the stack
-		ssc.stop();
+		ssc.stop(1000);
 	}
 }

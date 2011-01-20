@@ -972,7 +972,7 @@ public class Node {
 			for(Map.Entry<ConnectionKey,Connection> e : map_key_conn.entrySet()) {
 				Connection conn = e.getValue();
 				if(conn.host_id!=null && conn.host_id.equals(cer_host_id) &&
-				   conn.state==Connection.State.ready //TODO: what about TLS?
+				   (conn.state==Connection.State.ready || conn.state==Connection.State.tls)
 				) {
 					logger.log(Level.INFO,"New connection to a peer we already have a connection to (" + cer_host_id + ")");
 					if(close_other_connection) {
@@ -1045,20 +1045,25 @@ public class Node {
 		conn.host_id = host_id;
 		
 		if(handleCEx(msg,conn)) {
-			//todo: check inband-security
 			Message cea = new Message();
 			cea.prepareResponse(msg);
 			//Result-Code
 			cea.add(new AVP_Unsigned32(ProtocolConstants.DI_RESULT_CODE, ProtocolConstants.DIAMETER_RESULT_SUCCESS));
 			addCEStuff(cea,conn.peer.capabilities,conn);
 			
-			logger.log(Level.INFO,"Connection to " +conn.peer.toString() + " is now ready");
 			Utils.setMandatory_RFC3588(cea);
 			sendMessage(cea,conn);
-			conn.state=Connection.State.ready;
-			connection_listener.handle(conn.key, conn.peer, true);
-			synchronized(obj_conn_wait) {
-				obj_conn_wait.notifyAll();
+			if(conn.tls_supported && settings.getSSLContext()!=null) {
+				logger.log(Level.INFO,"Connection to " +conn.peer.toString() + " is switching to TLS");
+				switchToTLS(conn,false);
+				conn.state=Connection.State.tls;
+			} else {
+				logger.log(Level.INFO,"Connection to " +conn.peer.toString() + " is now ready");
+				conn.state=Connection.State.ready;
+				connection_listener.handle(conn.key, conn.peer, true);
+				synchronized(obj_conn_wait) {
+					obj_conn_wait.notifyAll();
+				}
 			}
 			return true;
 		} else
@@ -1095,11 +1100,17 @@ public class Node {
 		conn.host_id = host_id;
 		boolean rc = handleCEx(msg,conn);
 		if(rc) {
-			conn.state=Connection.State.ready;
-			logger.log(Level.INFO,"Connection to " +conn.peer.toString() + " is now ready");
-			connection_listener.handle(conn.key, conn.peer, true);
-			synchronized(obj_conn_wait) {
-				obj_conn_wait.notifyAll();
+			if(conn.tls_supported && settings.getSSLContext()!=null) {
+				logger.log(Level.INFO,"Connection to " +conn.peer.toString() + " is switching to TLS");
+				switchToTLS(conn,true);
+				conn.state=Connection.State.tls;
+			} else {
+				conn.state=Connection.State.ready;
+				logger.log(Level.INFO,"Connection to " +conn.peer.toString() + " is now ready");
+				connection_listener.handle(conn.key, conn.peer, true);
+				synchronized(obj_conn_wait) {
+					obj_conn_wait.notifyAll();
+				}
 			}
 			return true;
 		} else {
@@ -1166,6 +1177,13 @@ public class Node {
 			}
 			
 			conn.peer.capabilities = result_capabilities;
+			
+			for(AVP a : msg.subset(ProtocolConstants.DI_INBAND_SECURITY_ID)) {
+				if(new AVP_Unsigned32(a).queryValue()==ProtocolConstants.DI_INBAND_SECURITY_ID_TLS) {
+					logger.log(Level.FINEST,"peer supports TLS");
+					conn.tls_supported = true;
+				}
+			}
 		} catch(InvalidAVPLengthException ex) {
 			logger.log(Level.WARNING,"Invalid AVP in CER/CEA",ex);
 			if(msg.hdr.isRequest()) {
@@ -1233,7 +1251,8 @@ public class Node {
 			msg.add(new AVP_Unsigned32(ProtocolConstants.DI_AUTH_APPLICATION_ID,i));
 		}
 		//Inband-Security-Id
-		//  todo
+		if(settings.getSSLContext()!=null)
+			msg.add(new AVP_Unsigned32(ProtocolConstants.DI_INBAND_SECURITY_ID,ProtocolConstants.DI_INBAND_SECURITY_ID_TLS));
 		//Acct-Application-Id
 		for(Integer i : capabilities.acct_app) {
 			msg.add(new AVP_Unsigned32(ProtocolConstants.DI_ACCT_APPLICATION_ID,i));
@@ -1346,5 +1365,19 @@ public class Node {
 	}
 	Object getLockObject() {
 		return map_key_conn;
+	}
+	
+	private void switchToTLS(Connection conn, boolean client_mode) {
+		conn.switchToTLS(settings.getSSLContext(),client_mode);
+	}
+	void TLSFinished(Connection conn) {
+		//Called ulimately from (TCP-)Connection when TLS negotiation has finished
+		//todo: converge with code in handleCER/CEA
+		conn.state = Connection.State.ready;
+		logger.log(Level.INFO,"Connection to " +conn.peer.toString() + " is now ready");
+		connection_listener.handle(conn.key, conn.peer, true);
+		synchronized(obj_conn_wait) {
+			obj_conn_wait.notifyAll();
+		}
 	}
 }
