@@ -1,3 +1,6 @@
+Changes 0.9.6.11 ->
+ * NPE when server sent unmatched hop-by-hop-identifier (e.g. due to server bug or client timeout)
+ 
 Changes 0.9.6.10 -> 0.9.6.11
  * Handle 3GPP mismatch between announced applications in CER/CEA and actual
    messages.

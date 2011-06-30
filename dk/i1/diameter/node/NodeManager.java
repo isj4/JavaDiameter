@@ -439,9 +439,12 @@ public class NodeManager implements MessageDispatcher, ConnectionListener {
 			synchronized(req_map) {
 				Map<Integer,RequestData> e_c = req_map.get(connkey);
 				if(e_c!=null) {
-					state = e_c.get(msg.hdr.hop_by_hop_identifier).state;
-					e_c.remove(msg.hdr.hop_by_hop_identifier);
-					found = true;
+					RequestData rd = e_c.get(msg.hdr.hop_by_hop_identifier);
+					if(rd!=null) {
+						state = rd.state;
+						e_c.remove(msg.hdr.hop_by_hop_identifier);
+						found = true;
+					}
 				}
 			}
 			if(found) {
