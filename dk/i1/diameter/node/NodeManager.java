@@ -450,7 +450,7 @@ public class NodeManager implements MessageDispatcher, ConnectionListener {
 			if(found) {
 				handleAnswer(msg,connkey,state);
 			} else {
-				logger.log(Level.FINER,"Answer did not match any outstanding request");
+				logger.log(Level.INFO,"Answer did not match any outstanding request");
 			}
 		}
 		return true;
