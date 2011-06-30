@@ -162,7 +162,7 @@ public class Capability {
 	/**
 	 * Create a capability intersection.
 	 */
-	static Capability calculateIntersection(Capability us, Capability peer) {
+	public static Capability calculateIntersection(Capability us, Capability peer) {
 		//assumption: we are not a relay
 		Capability c = new Capability();
 		for(Integer vendor_id : peer.supported_vendor) {
