@@ -1,4 +1,4 @@
-Changes 0.9.6.11 ->
+Changes 0.9.6.11 -> 0.9.6.12
  * NPE when server sent unmatched hop-by-hop-identifier (e.g. due to server bug or client timeout)
  
 Changes 0.9.6.10 -> 0.9.6.11
