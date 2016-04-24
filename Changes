@@ -1,3 +1,6 @@
+Changes 0.9.6.12 -> 0.9.6.13
+ * Changed license to a permissable zlib/png-style
+
 Changes 0.9.6.11 -> 0.9.6.12
  * NPE when server sent unmatched hop-by-hop-identifier (e.g. due to server bug or client timeout)
  
